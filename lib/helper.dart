@@ -1,18 +1,98 @@
 import 'dart:async';
 
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter_chat_app/model/chat_model.dart';
 import 'package:flutter_chat_app/model/user_model.dart';
 
 FirebaseDatabase db = FirebaseDatabase.instance;
 DatabaseReference usersRef = db.reference().child('users');
 DatabaseReference usersInfoRef = db.reference().child('usersInfo');
 DatabaseReference usersContactRef = db.reference().child('usersContact');
+
+
 DatabaseReference chatRef = db.reference().child('chats');
 DatabaseReference chatMessagesRef = db.reference().child('chatMessages');
 DatabaseReference userChatsRef = db.reference().child('userChats');
 
 void enableCaching(){
   db.setPersistenceEnabled(true);
+}
+
+void createChatRoom(String senderPublicId, receiverPublicId){
+  String chatUID = getChatUID(senderPublicId, receiverPublicId);
+
+  chatRef.child(chatUID).child('members').child(senderPublicId).set(true);
+  chatRef.child(chatUID).child('members').child(receiverPublicId).set(true);
+
+  userChatsRef.child(senderPublicId).child(chatUID).set(true);
+  userChatsRef.child(receiverPublicId).child(chatUID).set(true);
+}
+
+
+
+String getChatUID(String senderPublicId, String receiverPublicId){
+  return senderPublicId.hashCode <= receiverPublicId.hashCode ? '$senderPublicId-$receiverPublicId' : '$receiverPublicId-$senderPublicId';
+}
+
+Future<ChatRoomModel> getChatRoomModel(String chatUID) async {
+  ChatRoomModel chatRoom;
+  DataSnapshot snapshot = await chatRef.child(chatUID).once();
+  Map<String, bool> members = Map<String, bool>.from(snapshot.value['members']);
+  String messageUID = snapshot.value['lastMessageSent'];
+  String lastMessage = await getChatMessage(chatUID, messageUID);
+  chatRoom = ChatRoomModel(chatUID, members.keys.toList(), lastMessage);
+
+  //chatRoom = ChatRoomModel.fromSnapshot(snapshot);
+  return chatRoom;
+}
+
+Future<String> getChatMessage(String chatUID, String messageUID) async {
+  DataSnapshot snapshot = await chatMessagesRef.child(chatUID).child(messageUID).once();
+  return snapshot.value['message'];
+}
+
+
+Future<void> insertChatMessage(String senderId, String receiverId, String message) async {
+
+  String chatUID = getChatUID(senderId, receiverId);
+  //String chatUID = senderId.hashCode <= receiverId.hashCode ? '$senderId-$receiverId' : '$receiverId-$senderId';
+
+  DatabaseReference newMessageRef = chatMessagesRef.child(chatUID).push();
+  String newMessageUID = newMessageRef.key;
+
+  newMessageRef.set({
+    'sentBy' : senderId,
+    'messageTime' : DateTime.now().millisecondsSinceEpoch.toString() ,
+    //'invertedMessageTime' : (0 - DateTime.now().millisecondsSinceEpoch).toString(),
+    'message' : message
+  });
+
+  chatRef.child(chatUID).child('lastMessageSent').set(newMessageUID);
+//  chatRef.child(chatUID).set({
+//    'lastMessageSent' : newMessageUID
+//  });
+
+  //chatRef.child('chatUID').set();
+
+  //Parameters:
+  //userModel, contactModel
+
+  //Check in /chats/ if it has chatUID
+  //if it doesnt, create record with the members,
+      //Also reference this chatUID to /userChats/userUID
+
+//  if (id.hashCode <= peerId.hashCode) {
+//    groupChatId = '$id-$peerId';
+//  } else {
+//    groupChatId = '$peerId-$id';
+//  }
+  //Then, insert messageUID as LastMEssageSent
+
+  //Insert this record to /userChats/userUID
+  //
+
+
+  //Insert Message to /chatMessages/
 }
 
 Future<void> createUserAssociation(String uniqueAuthId, String publicId){
@@ -57,21 +137,6 @@ dynamic onNewContactsCallback(String publicId, Function(Event) fn) {
       .listen(fn);
 }
 
-//Future<List<UserModel>> retrieveContacts(String publicId) async {
-//  List<UserModel> list = <UserModel>[];
-//  DataSnapshot contactList = await retrieveContactsList(publicId);
-//  print(contactList.value);
-//  if(contactList.value == null) return list;
-//  Map map = contactList.value;
-//  map.keys.forEach((publicId) async {
-//    list.add(await getUserModelForPublicId(publicId));
-//
-//  });
-//  print('list right before return: ${list.toString()}');
-//  return list;
-//}
-//
-//Future<DataSnapshot> retrieveContactsList(String publicId){
-//  return usersContactRef.child(publicId).once();
-//}
-//
+dynamic onNewChatCallback(String publicId, Function(Event) fn){
+  return userChatsRef.child(publicId).onChildAdded.listen(fn);
+}

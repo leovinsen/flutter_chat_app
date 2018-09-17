@@ -1,5 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/model/chat_model.dart';
 import 'package:flutter_chat_app/model/user_model.dart';
 import 'package:flutter_chat_app/ui/add_contact_screen.dart';
 import 'package:flutter_chat_app/ui/chat_tab.dart';
@@ -19,7 +20,9 @@ class HomePageNew extends StatefulWidget {
 
 class _HomePageNewState extends State<HomePageNew> {
   List<UserModel> contactsModelList = <UserModel>[];
+  List<ChatRoomModel> chatRoomList = <ChatRoomModel>[];
   var onNewContactsSub;
+  var onNewChatSub;
 
 
   @override
@@ -29,12 +32,14 @@ class _HomePageNewState extends State<HomePageNew> {
     //initializeContactList();
     helper.enableCaching();
     onNewContactsSub = helper.onNewContactsCallback(getPublicId(), onNewContact);
+    onNewChatSub = helper.onNewChatCallback(getPublicId(), onNewChat);
   }
 
   @override
   void dispose() {
     // TODO: implement dispose
     onNewContactsSub.cancel();
+    onNewChatSub.cancel();
     super.dispose();
   }
 
@@ -68,15 +73,14 @@ class _HomePageNewState extends State<HomePageNew> {
 
         body: TabBarView(
           children: <Widget>[
-            ChatTab(widget.onSignOut),
-            ContactsTab(contacts: contactsModelList,),
+            ChatTab(chatRoomList),
+            ContactsTab(contacts: contactsModelList, userModel: widget.userModel,),
             ProfileScreen(user: widget.userModel,)
           ],
         ),
       ),
     );
   }
-
   void addContact() async {
     final results = await Navigator.push(context, MaterialPageRoute(builder: (_) => AddContactScreen()));
     if(results != null){
@@ -105,6 +109,20 @@ class _HomePageNewState extends State<HomePageNew> {
 //      contactsModelList = list;
 //    });
 //  }
+
+  void onNewChat(Event event){
+    String chatUID = event.snapshot.key;
+    print('onNewChat: $chatUID');
+
+    helper.getChatRoomModel(chatUID).then((chatRoom){
+
+      setState(() {
+        chatRoomList.add(chatRoom);
+      });
+    });
+
+
+  }
 
   void onNewContact(Event event){
     Map map = event.snapshot.value;

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/model/user_model.dart';
 import 'package:flutter_chat_app/ui/chat_screen.dart';
+import 'package:flutter_chat_app/helper.dart' as helper;
 class ContactsTab extends StatelessWidget {
   final List<UserModel> contacts;
+  final UserModel userModel;
 
-  ContactsTab({this.contacts});
+  ContactsTab({this.contacts, this.userModel});
 
   @override
   Widget build(BuildContext context) {
@@ -33,9 +35,10 @@ class ContactsTab extends StatelessWidget {
     );
   }
 
-  goToChatScreen(BuildContext context, UserModel model) {
+  goToChatScreen(BuildContext context, UserModel contactModel) {
+    //helper.createChatRoomIfAbsent(userModel.publicId, contactModel.publicId);
     Navigator.push(context, MaterialPageRoute(
-        builder: (context) => ChatScreen(userModel: model,))
+        builder: (context) => ChatScreen(userModel: userModel, contactModel: contactModel, ))
     );
   }
 }

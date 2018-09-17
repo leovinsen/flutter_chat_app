@@ -1,18 +1,30 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_chat_app/helper.dart' as helper;
 import 'package:flutter_chat_app/model/user_model.dart';
+import 'package:firebase_database/ui/firebase_animated_list.dart';
 
 class ChatScreen extends StatefulWidget {
   final UserModel userModel;
-  ChatScreen({this.userModel});
+  final UserModel contactModel;
+  ChatScreen({this.userModel, this.contactModel});
   @override
   State createState() => new ChatScreenState();
 }
 
 class ChatScreenState extends State<ChatScreen> {
-  final List<Msg> _messages = <Msg>[];
+  final List<MessageBubble> _messages = <MessageBubble>[];
   final TextEditingController _textController = new TextEditingController();
   bool _isWriting = false;
+  String _chatUID;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _chatUID = helper.getChatUID(widget.userModel.publicId, widget.contactModel.publicId);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,18 +36,25 @@ class ChatScreenState extends State<ChatScreen> {
             radius: 16.0,
             child: Image.asset('assets/profile_default_thumbnail_64px.png'),
           ),
-          title: new Text(widget.userModel.displayName),
+          title: new Text(widget.contactModel.displayName),
         ),
         elevation: 6.0,
       ),
       body: new Column(children: <Widget>[
         new Flexible(
-            child: new ListView.builder(
-              itemBuilder: (_, int index) => _messages[index],
-              itemCount: _messages.length,
+            child: FirebaseAnimatedList(
               reverse: true,
-              padding: new EdgeInsets.all(6.0),
-            )),
+              sort: (DataSnapshot a, DataSnapshot b) => b.key.compareTo(a.key),
+              query: helper.chatMessagesRef.child(_chatUID).orderByChild('messageTime'),
+              itemBuilder: (_, DataSnapshot snapshot, Animation<double> animation, int index){
+                return MessageBubble(
+                  message: snapshot.value['message'],
+                  sender: snapshot.value['sentBy'] == widget.userModel.publicId ? MessageSender.user : MessageSender.contact,
+                );
+              },
+
+            )
+        ),
         new Divider(height: 1.0),
         new Container(
           child: _buildComposer(),
@@ -55,6 +74,7 @@ class ChatScreenState extends State<ChatScreen> {
             children: <Widget>[
               new Flexible(
                 child: new TextField(
+                  textCapitalization: TextCapitalization.sentences,
                   controller: _textController,
                   onChanged: (String txt) {
                     setState(() {
@@ -83,22 +103,34 @@ class ChatScreenState extends State<ChatScreen> {
 
   void _submitMsg(String txt) {
 
+    //Which means the current message sent is the first message
+    if(_messages.isEmpty)  helper.createChatRoom(widget.userModel.publicId, widget.contactModel.publicId);
+
     _textController.clear();
+
     setState(() {
       _isWriting = false;
     });
 
     //Push message to firebase
     //Create message on the device
-    //
 
 
-    Msg msg = new Msg(
+    MessageBubble msg = new MessageBubble(
       message: txt,
-      senderName: "TEST",
+      sender: MessageSender.user,
     );
+
+    helper.insertChatMessage(widget.userModel.publicId, widget.contactModel.publicId, txt);
+
+//    MessageBubble msg2 = MessageBubble(
+//      message: "Whatsup brooo",
+//      sender: MessageSender.contact,
+//    );
+
     setState(() {
       _messages.insert(0, msg);
+      //_messages.insert(0,msg2);
     });
   }
 
@@ -109,18 +141,38 @@ class ChatScreenState extends State<ChatScreen> {
 
 }
 
-class Msg extends StatelessWidget {
-  Msg({this.message, this.senderName});
+enum MessageSender{
+  user,
+  contact
+}
+
+class MessageBubble extends StatelessWidget {
+
+  MessageBubble({this.message, this.sender});
   final String message;
-  final String senderName;
+  final MessageSender sender;
 
   @override
   Widget build(BuildContext context) {
+    double c_width = MediaQuery.of(context).size.width*0.8;
     return Row(
-
+      mainAxisAlignment: sender == MessageSender.user ? MainAxisAlignment.end : MainAxisAlignment.start,
       children: <Widget>[
+        Card(
+          margin: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+          color: sender == MessageSender.user ? Theme.of(context).accentColor.withOpacity(0.5) : Colors.white,
+          child: Container(
+            constraints: BoxConstraints(maxWidth: c_width),
+            padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(message),
+                ],
+              )
+          ),
 
-
+        )
 
       ],
 
