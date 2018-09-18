@@ -1,26 +1,31 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/model/cache_handler.dart';
 import 'package:flutter_chat_app/model/chat_model.dart';
 import 'package:flutter_chat_app/model/user_model.dart';
 import 'package:flutter_chat_app/ui/add_contact_screen.dart';
 import 'package:flutter_chat_app/ui/chat_tab.dart';
 import 'package:flutter_chat_app/ui/contacts_tab.dart';
 import 'package:flutter_chat_app/ui/profile_screen.dart';
-import 'helper.dart' as helper;
+import 'package:flutter_chat_app/util/helper.dart' as helper;
 
 class HomePageNew extends StatefulWidget {
   final VoidCallback onSignOut;
-  final String userAuthId;
-  final UserModel userModel;
-
-  HomePageNew({this.userAuthId, this.onSignOut, this.userModel});
+  final String userPublicId;
+  //final UserModel userModel;
+  HomePageNew({this.onSignOut, this.userPublicId});
+  //HomePageNew({this.userAuthId, this.onSignOut, this.userModel});
   @override
   _HomePageNewState createState() => _HomePageNewState();
 }
 
 class _HomePageNewState extends State<HomePageNew> {
+
+  UserModel userModel;
+
   List<UserModel> contactsModelList = <UserModel>[];
   List<ChatRoomModel> chatRoomList = <ChatRoomModel>[];
+  List<dynamic> chatRoomSubs = [];
   var onNewContactsSub;
   var onNewChatSub;
 
@@ -29,10 +34,39 @@ class _HomePageNewState extends State<HomePageNew> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    //initializeContactList();
     helper.enableCaching();
-    onNewContactsSub = helper.onNewContactsCallback(getPublicId(), onNewContact);
-    onNewChatSub = helper.onNewChatCallback(getPublicId(), onNewChat);
+    //userModel = CacheHandler.getUserModel();
+    initUserModel();
+    onNewContactsSub = helper.onNewContactsCallback(widget.userPublicId, onNewContact);
+    onNewChatSub = helper.onNewChatCallback(widget.userPublicId, onNewChat);
+  }
+
+  initUserModel(){
+    userModel = UserModel(null, null, null);
+
+    //Retrieve user data locally
+    //At this point, there is NO publicId is null,
+    //However, displayName / thumbUrl can be null
+    //For exmaple, logging in from a new device
+
+    String displayName = CacheHandler.getUserDisplayName();
+    String thumbUrl = CacheHandler.getUserThumbUrl();
+
+    if(displayName != null && thumbUrl != null){
+      UserModel model = UserModel(widget.userPublicId, displayName, thumbUrl);
+      updateUserModel(model);
+    }
+
+    helper.getUserModelForPublicId(widget.userPublicId).then((model){
+      updateUserModel(model);
+    });
+
+  }
+
+  updateUserModel(UserModel model){
+    setState(() {
+      userModel = model;
+    });
   }
 
   @override
@@ -57,8 +91,8 @@ class _HomePageNewState extends State<HomePageNew> {
             ),
 
             IconButton(
-              icon: Icon(Icons.refresh),
-              onPressed: null,
+              icon: Icon(Icons.exit_to_app),
+              onPressed: widget.onSignOut,
             )
           ],
 
@@ -73,9 +107,10 @@ class _HomePageNewState extends State<HomePageNew> {
 
         body: TabBarView(
           children: <Widget>[
+            //Center(child:Text('A')),Center(child:Text('A')),Center(child:Text('A'))
             ChatTab(chatRoomList),
-            ContactsTab(contacts: contactsModelList, userModel: widget.userModel,),
-            ProfileScreen(user: widget.userModel,)
+            ContactsTab(contacts: contactsModelList, userModel: userModel,),
+            ProfileScreen(user: userModel,)
           ],
         ),
       ),
@@ -118,10 +153,25 @@ class _HomePageNewState extends State<HomePageNew> {
 
       setState(() {
         chatRoomList.add(chatRoom);
+        chatRoomSubs.add(helper.onChatChangedCallback(chatUID, onChatNewMessage));
       });
     });
 
 
+  }
+
+  void onChatNewMessage(Event event) async {
+    ChatRoomModel chatRoom = chatRoomList.singleWhere((chatRoom){
+      return event.snapshot.key == chatRoom.chatUID;
+    });
+    if(chatRoom.lastMessageSentUID != event.snapshot.value['lastMessageSent']){
+      String newMessage = await helper.getChatMessage(chatRoom.chatUID, event.snapshot.value['lastMessageSent']);
+      setState(() {
+        chatRoom.lastMessageSent = newMessage;
+      });
+    } else {
+      print('HomePage, OnChatNewMessage ' + event.snapshot.value['lastMessageSent']);
+    }
   }
 
   void onNewContact(Event event){
@@ -137,7 +187,7 @@ class _HomePageNewState extends State<HomePageNew> {
   }
 
   String getPublicId(){
-    return widget.userModel.publicId;
+    return userModel.publicId;
   }
 
 }

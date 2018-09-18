@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter_chat_app/model/cache_handler.dart';
 import 'package:flutter_chat_app/model/chat_model.dart';
 import 'package:flutter_chat_app/model/user_model.dart';
 
@@ -40,7 +41,7 @@ Future<ChatRoomModel> getChatRoomModel(String chatUID) async {
   Map<String, bool> members = Map<String, bool>.from(snapshot.value['members']);
   String messageUID = snapshot.value['lastMessageSent'];
   String lastMessage = await getChatMessage(chatUID, messageUID);
-  chatRoom = ChatRoomModel(chatUID, members.keys.toList(), lastMessage);
+  chatRoom = ChatRoomModel(chatUID, members.keys.toList(), lastMessage, messageUID);
 
   //chatRoom = ChatRoomModel.fromSnapshot(snapshot);
   return chatRoom;
@@ -139,4 +140,8 @@ dynamic onNewContactsCallback(String publicId, Function(Event) fn) {
 
 dynamic onNewChatCallback(String publicId, Function(Event) fn){
   return userChatsRef.child(publicId).onChildAdded.listen(fn);
+}
+
+dynamic onChatChangedCallback(String chatUID, Function(Event) fn){
+  return chatRef.child(chatUID).onValue.listen(fn);
 }

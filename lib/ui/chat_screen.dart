@@ -1,7 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_chat_app/helper.dart' as helper;
+import 'package:flutter_chat_app/util/helper.dart' as helper;
 import 'package:flutter_chat_app/model/user_model.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 

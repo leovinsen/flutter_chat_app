@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/helper.dart' as helper;
+import 'package:flutter_chat_app/util/helper.dart' as helper;
+import 'package:flutter_chat_app/model/cache_handler.dart';
 import 'package:flutter_chat_app/model/user_model.dart';
 
 class AdditionalInfoScreen extends StatefulWidget {
@@ -88,20 +89,25 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
       try {
         //Create association between Auth ID with Public ID
         helper.createUserAssociation(widget._uniqueAuthId, _publicId);
-//        helper.usersRef.child(widget._uniqueAuthId).set(_publicId);
 
-        //Create a record in UsersInfo which contains user's personal information
         String thumbUrl = 'https://firebasestorage.googleapis.com/v0/b/flutter-chat-app-10a1f'
             '.appspot.com/o/profile_default_thumbnail_128px.png?alt=media&token=d8769ef5-281f-4d16-a4cd-f733f85fe45c';
+
+
+
+
+
+        //Create a record in UsersInfo which contains user's personal information
+
+
         UserModel user = UserModel(_publicId, _displayName, thumbUrl);
 
         helper.updateUsersInfo(user).then((val){
-          Navigator.pop(context, user);
+          CacheHandler.storeUserPublicId(_publicId);
+          CacheHandler.storeUserDisplayName(_displayName);
+          CacheHandler.storeUserThumbnailUrl(thumbUrl);
+          Navigator.pop(context, _publicId);
         });
-//       helper.usersInfoRef.child(_publicId).set(user.toJson()).then((val){
-//          Navigator.pop(context, user);
-//       });
-
       } catch (e){
         Scaffold.of(context).showSnackBar(
           SnackBar(content: Text('ERROR caught'))

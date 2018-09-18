@@ -5,7 +5,8 @@ class ChatRoomModel{
   String chatUID;
   List<String> members;
   String lastMessageSent;
-  ChatRoomModel(this.chatUID, this.members, this.lastMessageSent);
+  String lastMessageSentUID;
+  ChatRoomModel(this.chatUID, this.members, this.lastMessageSent, this.lastMessageSentUID);
 
 
   ChatRoomModel.fromSnapshot(DataSnapshot snapshot)

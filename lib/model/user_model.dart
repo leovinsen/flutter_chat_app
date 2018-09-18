@@ -16,13 +16,14 @@ class UserModel{
 //  Map get contacts => _contacts;
 
 
-
   UserModel(String publicId, String displayName, String thumbUrl){
     _publicId = publicId;
     _displayName = displayName;
     _thumbUrl = thumbUrl;
 //    _contacts = {};
   }
+
+
 
 
   UserModel.fromSnapshot(DataSnapshot snapshot)

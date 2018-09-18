@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/model/user_model.dart';
 import 'package:flutter_chat_app/ui/chat_screen.dart';
-import 'package:flutter_chat_app/helper.dart' as helper;
+import 'package:flutter_chat_app/util/helper.dart' as helper;
 class ContactsTab extends StatelessWidget {
   final List<UserModel> contacts;
   final UserModel userModel;

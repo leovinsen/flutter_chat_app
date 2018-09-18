@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/app_model.dart';
-import 'package:flutter_chat_app/auth.dart';
-import 'package:flutter_chat_app/register_page.dart';
-import 'package:flutter_chat_app/root_page.dart';
-import 'package:scoped_model/scoped_model.dart';
-import 'login_page.dart';
+import 'package:flutter_chat_app/ui/root_page.dart';
 
 void main() => runApp(MyApp());
 
@@ -20,13 +15,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Nunito',
       ),
       home: RootPage(),
-//      home: ScopedModel<AppModel>(
-//        model: AppModel(),
-//        child: RootPage(title: title),
-//      ),
       routes: {
-        LoginPage.tag: (context) => LoginPage(),
-        RegisterPage.tag: (context) => RegisterPage()
       },
     );
   }
