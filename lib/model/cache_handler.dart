@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter_chat_app/model/user_model.dart';
+import 'package:flutter_chat_app/model/user_data.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CacheHandler{
@@ -59,8 +59,8 @@ class CacheHandler{
     return localStorage.getString(fieldUserThumbUrl);
   }
 
-  static UserModel getUserModel(){
-    return UserModel(getUserPublicId(), getUserDisplayName() , getUserThumbUrl());
+  static UserData getUserModel(){
+    return UserData(getUserPublicId(), getUserDisplayName() , getUserThumbUrl());
   }
 
   static void clearUserCreds(){

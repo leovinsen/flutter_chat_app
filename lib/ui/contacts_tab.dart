@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/model/user_model.dart';
+import 'package:flutter_chat_app/model/user_data.dart';
 import 'package:flutter_chat_app/ui/chat_screen.dart';
-import 'package:flutter_chat_app/util/helper.dart' as helper;
+import 'package:flutter_chat_app/util/firebase_handler.dart' as helper;
 import '../util/dimensions.dart' as dimen;
 class ContactsTab extends StatelessWidget {
-  final List<UserModel> contacts;
-  final UserModel userModel;
+  final List<UserData> contacts;
+  final UserData userModel;
 
   ContactsTab({this.contacts, this.userModel});
 
@@ -38,7 +38,7 @@ class ContactsTab extends StatelessWidget {
         );
   }
 
-  goToChatScreen(BuildContext context, UserModel contactModel) {
+  goToChatScreen(BuildContext context, UserData contactModel) {
     //helper.createChatRoomIfAbsent(userModel.publicId, contactModel.publicId);
     Navigator.push(context, MaterialPageRoute(
         builder: (context) => ChatScreen(userModel: userModel, contactModel: contactModel, ))

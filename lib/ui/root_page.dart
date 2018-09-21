@@ -6,7 +6,7 @@ import 'package:flutter_chat_app/model/cache_handler.dart';
 import 'package:flutter_chat_app/ui/home_page.dart';
 import 'package:flutter_chat_app/ui/login/additional_info_screen.dart';
 import 'package:flutter_chat_app/ui/login/login_page.dart';
-import 'package:flutter_chat_app/util/helper.dart' as helper;
+import 'package:flutter_chat_app/util/firebase_handler.dart' as helper;
 
 class RootPage extends StatefulWidget {
   //RootPage({Key key, this.auth}) : super(key: key);
@@ -23,6 +23,7 @@ enum AuthStatus {
 class _RootPageState extends State<RootPage> {
   final String tag = 'root-page';
   final BaseAuth auth = Auth();
+
   //UserModel _user;
   String _uniqueAuthId;
   String _publicId;
@@ -33,46 +34,42 @@ class _RootPageState extends State<RootPage> {
   initState() {
     super.initState();
     init();
-
   }
 
-  init() async{
+  init() async {
     await CacheHandler.init();
 
-    if(await findUserFirebaseAuthId()){
+    if (await findUserFirebaseAuthId()) {
       checkRegistrationStatus();
     } else {
       userIsNotLoggedIn();
     }
-
   }
 
   Future<bool> findUserFirebaseAuthId() async {
-
     //Get user Auth ID from local storage
     _uniqueAuthId = CacheHandler.getUserFirebaseAuthId();
 
     //If not found, try online
-    if(_uniqueAuthId == null) _uniqueAuthId = await auth.currentUser();
+    if (_uniqueAuthId == null) _uniqueAuthId = await auth.currentUser();
 
     return _uniqueAuthId != null;
-
   }
 
   Future<bool> findUserPublicId() async {
     _publicId = CacheHandler.getUserPublicId();
 
-    if (_publicId == null) _publicId = await helper.getUserPublicId(_uniqueAuthId);
+    if (_publicId == null)
+      _publicId = await helper.getUserPublicId(_uniqueAuthId);
 
     return _publicId != null;
   }
-
 
   checkRegistrationStatus() async {
     print('$tag: Checking Registration Status');
 //    //If true
 
-    if(await findUserPublicId()){
+    if (await findUserPublicId()) {
       userIsRegistered();
     } else {
       _publicId = await Navigator.push(
@@ -83,19 +80,16 @@ class _RootPageState extends State<RootPage> {
 
       userIsRegistered();
     }
+  }
 
-    }
-
-
-
-  void userIsNotLoggedIn(){
+  void userIsNotLoggedIn() {
     setState(() {
       loading = false;
       authStatus = AuthStatus.notSignedIn;
     });
   }
 
-  void userIsRegistered(){
+  void userIsRegistered() {
     setState(() {
       authStatus = AuthStatus.signedIn;
       loading = false;
@@ -103,7 +97,6 @@ class _RootPageState extends State<RootPage> {
   }
 
   void _signIn(String userAuthId) {
-
     setState(() {
       _uniqueAuthId = userAuthId;
       //authStatus = AuthStatus.signedIn;
@@ -123,14 +116,17 @@ class _RootPageState extends State<RootPage> {
   @override
   Widget build(BuildContext context) {
     print('calling build ROOT_PAGE');
-    if(loading) {
-      return  Container(
+    if (loading) {
+      return Container(
         color: Theme.of(context).backgroundColor,
         alignment: Alignment.center,
         child: SizedBox(
             height: 60.0,
             width: 60.0,
-            child: CircularProgressIndicator(strokeWidth: 4.0,)),);
+            child: CircularProgressIndicator(
+              strokeWidth: 4.0,
+            )),
+      );
     } else {
       switch (authStatus) {
         case AuthStatus.notSignedIn:
@@ -145,73 +141,7 @@ class _RootPageState extends State<RootPage> {
             onSignOut: () => _signOut(),
             //userModel: _user,
           );
-//        helper.usersRef.child(_userAuthId).once().then(( snapshot) async{
-//          //If there is none
-//          //Prompt user to create a publicID/UserName & DisplayName
-//          if(snapshot.value == null){
-//            print('Snapshot value is null. No record exists in UsersInfo');
-//            final results = await Navigator.push(context, MaterialPageRoute(
-//              builder: (context) => AdditionalInfoScreen(_userAuthId),
-//            ));
-//
-//            _user = results;
-//
-////            _user = UserModel();
-////
-////            _user.thumbUrl = thumbUrl;
-//            //_registered = false;
-//
-//
-//          } else {
-//            print('Record exist in UsersInfo');
-//            _user = UserModel.fromSnapshot(snapshot);
-//            //_registered = true;
-//
-//          }
-//        });
-//        if (_completeRegistration) {
-//          return HomePageNew(
-//            userAuthId: _uniqueAuthId,
-//            onSignOut: () => _signOut(),
-//            userModel: _user,
-//          );
-//        } else {
-//          return Container(
-//            child: Text('loading', style: TextStyle(fontSize: 25.0),),
-//            color: Colors.white,
-//          );
-//        }
       }
     }
-    }
-
+  }
 }
-
-//class RootPage extends StatelessWidget {
-//    RootPage({Key key, this.title}) : super(key:key);
-//  final String title;
-//
-//
-//  @override
-//  Widget build(BuildContext context) {
-//
-//    return ScopedModelDescendant<AppModel>(
-//      builder: (context, child, model){
-//        if(!model.ready){
-//          return Container(child: CircularProgressIndicator(),);
-//        } else {
-//          switch(model.authStatus){
-//            case AuthStatus.notSignedIn:
-//              return LoginPage();
-//            case AuthStatus.register:
-//              return RegisterPage();
-//            case AuthStatus.signedIn:
-//              return HomePage(model.auth, model.uid);
-//          }
-//        }
-//
-//      }
-//    );
-//  }
-//}
-

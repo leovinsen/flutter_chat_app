@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/model/chat_model.dart';
-import 'package:flutter_chat_app/model/user_model.dart';
+import 'package:flutter_chat_app/model/chat_room_data.dart';
+import 'package:flutter_chat_app/model/user_data.dart';
 import 'package:flutter_chat_app/ui/chat_screen.dart';
-import '../util/helper.dart' as helper;
+import '../util/firebase_handler.dart' as helper;
 import '../util/dimensions.dart' as dimen;
 import 'package:intl/intl.dart';
 
 class ChatTab extends StatelessWidget {
   //final VoidCallback onSignOut;
-  UserModel userModel;
-  List<ChatRoomModel> chatModels;
+  UserData userModel;
+  List<ChatRoomData> chatModels;
 
   final DateFormat dateFormat = new DateFormat('dd/MM/yyyy');
 
@@ -67,7 +67,7 @@ class ChatTab extends StatelessWidget {
         future: helper.getUserModelForPublicId(publicId),
         builder: (_, snapshot){
       if(snapshot.hasData){
-        var model = snapshot.data as UserModel;
+        var model = snapshot.data as UserData;
         return Text(model.displayName);
       } else {
         return Text(publicId);

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/model/user_model.dart';
+import 'package:flutter_chat_app/model/user_data.dart';
 
 class ProfileScreen extends StatelessWidget {
-  final UserModel user;
+  final UserData user;
   ProfileScreen({this.user});
 
   @override

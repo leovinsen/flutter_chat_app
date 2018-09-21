@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/model/cache_handler.dart';
-import 'package:flutter_chat_app/model/chat_model.dart';
-import 'package:flutter_chat_app/model/user_model.dart';
+import 'package:flutter_chat_app/model/chat_room_data.dart';
+import 'package:flutter_chat_app/model/user_data.dart';
 import 'package:flutter_chat_app/ui/add_contact_screen.dart';
 import 'package:flutter_chat_app/ui/chat_tab.dart';
 import 'package:flutter_chat_app/ui/contacts_tab.dart';
 import 'package:flutter_chat_app/ui/profile_screen.dart';
-import 'package:flutter_chat_app/util/helper.dart' as helper;
+import 'package:flutter_chat_app/util/firebase_handler.dart' as helper;
 
 class HomePage extends StatefulWidget {
   final VoidCallback onSignOut;
@@ -22,10 +22,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageNewState extends State<HomePage> {
 
-  UserModel userModel;
+  UserData userModel;
 
-  List<UserModel> contactsModelList = <UserModel>[];
-  List<ChatRoomModel> chatRoomList = <ChatRoomModel>[];
+  List<UserData> contactsModelList = <UserData>[];
+  List<ChatRoomData> chatRoomList = <ChatRoomData>[];
   List<StreamSubscription<Event> > chatRoomSubs = [];
   StreamSubscription<Event>  onNewContactsSub;
   StreamSubscription<Event>  onNewChatSub;
@@ -43,7 +43,7 @@ class _HomePageNewState extends State<HomePage> {
   }
 
   initUserModel(){
-    userModel = UserModel(null, null, null);
+    userModel = UserData(null, null, null);
 
     //Retrieve user data locally
     //At this point, there is NO publicId is null,
@@ -54,7 +54,7 @@ class _HomePageNewState extends State<HomePage> {
     String thumbUrl = CacheHandler.getUserThumbUrl();
 
     if(displayName != null && thumbUrl != null){
-      UserModel model = UserModel(widget.userPublicId, displayName, thumbUrl);
+      UserData model = UserData(widget.userPublicId, displayName, thumbUrl);
       updateUserModel(model);
     }
 
@@ -64,7 +64,7 @@ class _HomePageNewState extends State<HomePage> {
 
   }
 
-  updateUserModel(UserModel model){
+  updateUserModel(UserData model){
     setState(() {
       userModel = model;
     });
@@ -158,7 +158,7 @@ class _HomePageNewState extends State<HomePage> {
   }
 
   void onChatNewMessage(Event event) async {
-    ChatRoomModel chatRoom = chatRoomList.singleWhere((chatRoom){
+    ChatRoomData chatRoom = chatRoomList.singleWhere((chatRoom){
       return event.snapshot.key == chatRoom.chatUID;
     });
     if(chatRoom.lastMessageSentUID != event.snapshot.value['lastMessageSent']){

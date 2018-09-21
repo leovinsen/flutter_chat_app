@@ -1,12 +1,12 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/util/helper.dart' as helper;
-import 'package:flutter_chat_app/model/user_model.dart';
+import 'package:flutter_chat_app/util/firebase_handler.dart' as helper;
+import 'package:flutter_chat_app/model/user_data.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 
 class ChatScreen extends StatefulWidget {
-  final UserModel userModel;
-  final UserModel contactModel;
+  final UserData userModel;
+  final UserData contactModel;
   ChatScreen({this.userModel, this.contactModel});
   @override
   State createState() => new ChatScreenState();
@@ -44,7 +44,7 @@ class ChatScreenState extends State<ChatScreen> {
             child: FirebaseAnimatedList(
               reverse: true,
               sort: (DataSnapshot a, DataSnapshot b) => b.key.compareTo(a.key),
-              query: helper.chatMessagesRef.child(_chatUID).orderByChild('messageTime'),
+              query: helper._chatMessagesRef.child(_chatUID).orderByChild('messageTime'),
               itemBuilder: (_, DataSnapshot snapshot, Animation<double> animation, int index){
                 return MessageBubble(
                   message: snapshot.value['message'],

@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/util/helper.dart' as helper;
+import 'package:flutter_chat_app/util/firebase_handler.dart' as helper;
 import 'package:flutter_chat_app/model/cache_handler.dart';
-import 'package:flutter_chat_app/model/user_model.dart';
+import 'package:flutter_chat_app/model/user_data.dart';
 
 class AdditionalInfoScreen extends StatefulWidget {
   final String _uniqueAuthId;
@@ -100,7 +100,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
         //Create a record in UsersInfo which contains user's personal information
 
 
-        UserModel user = UserModel(_publicId, _displayName, thumbUrl);
+        UserData user = UserData(_publicId, _displayName, thumbUrl);
 
         helper.updateUsersInfo(user).then((val){
           CacheHandler.storeUserPublicId(_publicId);
