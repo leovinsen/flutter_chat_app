@@ -1,29 +1,36 @@
 import 'dart:async';
 
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter_chat_app/model/cache_handler.dart';
 import 'package:flutter_chat_app/model/chat_room_data.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
 
-class FirebaseHandler{
+
   FirebaseDatabase db = FirebaseDatabase.instance;
-  DatabaseReference _usersRef;
-  DatabaseReference _usersInfoRef;
-  DatabaseReference _usersContactRef;
+  DatabaseReference _usersRef = db.reference().child('users');
+  DatabaseReference _usersInfoRef = db.reference().child('usersInfo');
+  DatabaseReference _usersContactRef = db.reference().child('usersContact');
 
 
-  DatabaseReference _chatRef;
-  DatabaseReference _chatMessagesRef;
-  DatabaseReference _userChatsRef;
+  DatabaseReference _chatRef = db.reference().child('chats');
+  DatabaseReference _chatMessagesRef = db.reference().child('chatMessages');
+  DatabaseReference  _userChatsRef = db.reference().child('userChats');
 
-  FirebaseHandler(){
+  void enableCaching(){
     db.setPersistenceEnabled(true);
-    _usersRef = db.reference().child('users');
-    _usersInfoRef = db.reference().child('usersInfo');
-    _usersContactRef = db.reference().child('usersContact');
-    _chatRef = db.reference().child('chats');
-    _chatMessagesRef = db.reference().child('chatMessages');
-    _userChatsRef = db.reference().child('userChats');
+  }
+
+//  FirebaseHandler(){
+//    db.setPersistenceEnabled(true);
+//    _usersRef = db.reference().child('users');
+//    _usersInfoRef = db.reference().child('usersInfo');
+//    _usersContactRef = db.reference().child('usersContact');
+//    _chatRef = db.reference().child('chats');
+//    _chatMessagesRef = db.reference().child('chatMessages');
+//    _userChatsRef = db.reference().child('userChats');
+//  }
+
+  Query queryMessagesOrderByTimeAscending(String chatUID){
+    return _chatMessagesRef.child(chatUID).orderByChild('messageTime');
   }
 
 //  void enableCaching(){
@@ -149,6 +156,6 @@ class FirebaseHandler{
   StreamSubscription<Event>  newMessageCallback(String chatUID, Function(Event) fn){
     return _chatRef.child(chatUID).onValue.listen(fn);
   }
-}
+
 
 

@@ -1,13 +1,14 @@
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/util/firebase_handler.dart' as helper;
-import 'package:flutter_chat_app/model/user_data.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/model/user_data.dart';
+import 'package:flutter_chat_app/util/firebase_handler.dart' as firebaseHandler;
 
 class ChatScreen extends StatefulWidget {
-  final UserData userModel;
+  //final UserData userModel;
+  final String userPublicId;
   final UserData contactModel;
-  ChatScreen({this.userModel, this.contactModel});
+  ChatScreen({this.userPublicId, this.contactModel});
   @override
   State createState() => new ChatScreenState();
 }
@@ -22,45 +23,45 @@ class ChatScreenState extends State<ChatScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    _chatUID = helper.getChatUID(widget.userModel.publicId, widget.contactModel.publicId);
+    _chatUID = firebaseHandler.getChatUID(widget.userPublicId, widget.contactModel.publicId);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: true, //false to hide back button
-        title: ListTile(
-          leading: CircleAvatar(
-            radius: 16.0,
-            child: Image.asset('assets/profile_default_thumbnail_64px.png'),
+        return Scaffold(
+          appBar: AppBar(
+            automaticallyImplyLeading: true, //false to hide back button
+            title: ListTile(
+              leading: CircleAvatar(
+                radius: 16.0,
+                child: Image.asset('assets/profile_default_thumbnail_64px.png'),
+              ),
+              title: new Text(widget.contactModel.displayName),
+            ),
+            elevation: 6.0,
           ),
-          title: new Text(widget.contactModel.displayName),
-        ),
-        elevation: 6.0,
-      ),
-      body: new Column(children: <Widget>[
-        new Flexible(
-            child: FirebaseAnimatedList(
-              reverse: true,
-              sort: (DataSnapshot a, DataSnapshot b) => b.key.compareTo(a.key),
-              query: helper._chatMessagesRef.child(_chatUID).orderByChild('messageTime'),
-              itemBuilder: (_, DataSnapshot snapshot, Animation<double> animation, int index){
-                return MessageBubble(
-                  message: snapshot.value['message'],
-                  sender: snapshot.value['sentBy'] == widget.userModel.publicId ? MessageSender.user : MessageSender.contact,
-                );
-              },
+          body: new Column(children: <Widget>[
+            new Flexible(
+                child: FirebaseAnimatedList(
+                  reverse: true,
+                  sort: (DataSnapshot a, DataSnapshot b) => b.key.compareTo(a.key),
+                  query: firebaseHandler.queryMessagesOrderByTimeAscending(_chatUID),
+                  itemBuilder: (_, DataSnapshot snapshot, Animation<double> animation, int index){
+                    return MessageBubble(
+                      message: snapshot.value['message'],
+                      sender: snapshot.value['sentBy'] == widget.userPublicId ? MessageSender.user : MessageSender.contact,
+                    );
+                  },
 
-            )
-        ),
-        new Divider(height: 1.0),
-        new Container(
-          child: _buildComposer(),
-          decoration: new BoxDecoration(color: Theme.of(context).cardColor),
-        ),
-      ]),
-    );
+                )
+            ),
+            new Divider(height: 1.0),
+            new Container(
+              child: _buildComposer(),
+              decoration: new BoxDecoration(color: Theme.of(context).cardColor),
+            ),
+          ]),
+        );
   }
 
 
@@ -101,10 +102,6 @@ class ChatScreenState extends State<ChatScreen> {
   }
 
   void _submitMsg(String txt) {
-
-    //Which means the current message sent is the first message
-    //if(_messages.isEmpty)  helper.createChatRoom(widget.userModel.publicId, widget.contactModel.publicId);
-
     _textController.clear();
 
     setState(() {
@@ -114,18 +111,12 @@ class ChatScreenState extends State<ChatScreen> {
     //Push message to firebase
     //Create message on the device
 
-
     MessageBubble msg = new MessageBubble(
       message: txt,
       sender: MessageSender.user,
     );
 
-    helper.insertChatMessage(widget.userModel.publicId, widget.contactModel.publicId, txt);
-
-//    MessageBubble msg2 = MessageBubble(
-//      message: "Whatsup brooo",
-//      sender: MessageSender.contact,
-//    );
+    firebaseHandler.insertChatMessage(widget.userPublicId, widget.contactModel.publicId, txt);
 
     setState(() {
       _messages.insert(0, msg);
@@ -153,7 +144,7 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double c_width = MediaQuery.of(context).size.width*0.8;
+    double width80 = MediaQuery.of(context).size.width*0.8;
     return Row(
       mainAxisAlignment: sender == MessageSender.user ? MainAxisAlignment.end : MainAxisAlignment.start,
       children: <Widget>[
@@ -161,7 +152,7 @@ class MessageBubble extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
           color: sender == MessageSender.user ? Theme.of(context).accentColor.withOpacity(0.5) : Colors.white,
           child: Container(
-            constraints: BoxConstraints(maxWidth: c_width),
+            constraints: BoxConstraints(maxWidth: width80),
             padding: const EdgeInsets.all(8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

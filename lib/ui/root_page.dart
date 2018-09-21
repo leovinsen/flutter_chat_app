@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/model/auth.dart';
 import 'package:flutter_chat_app/model/cache_handler.dart';
 import 'package:flutter_chat_app/ui/home_page.dart';
 import 'package:flutter_chat_app/ui/login/additional_info_screen.dart';
 import 'package:flutter_chat_app/ui/login/login_page.dart';
 import 'package:flutter_chat_app/util/firebase_handler.dart' as helper;
+import 'package:scoped_model/scoped_model.dart';
 
 class RootPage extends StatefulWidget {
   //RootPage({Key key, this.auth}) : super(key: key);
@@ -135,11 +137,14 @@ class _RootPageState extends State<RootPage> {
             onSignIn: _signIn,
           );
         case AuthStatus.signedIn:
-          return HomePage(
-            //userAuthId: _uniqueAuthId,
-            userPublicId: _publicId,
-            onSignOut: () => _signOut(),
-            //userModel: _user,
+          return ScopedModel<AppData>(
+            model: AppData(_publicId),
+            child: HomePage(
+              //userAuthId: _uniqueAuthId,
+//              userPublicId: _publicId,
+              onSignOut: () => _signOut(),
+              //userModel: _user,
+            ),
           );
       }
     }
