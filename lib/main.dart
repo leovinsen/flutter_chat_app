@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.lightBlue,
-        fontFamily: 'Nunito',
+
       ),
       home: RootPage(),
       routes: {

@@ -41,7 +41,14 @@ Future<ChatRoomModel> getChatRoomModel(String chatUID) async {
   Map<String, bool> members = Map<String, bool>.from(snapshot.value['members']);
   String messageUID = snapshot.value['lastMessageSent'];
   String lastMessage = await getChatMessage(chatUID, messageUID);
-  chatRoom = ChatRoomModel(chatUID, members.keys.toList(), lastMessage, messageUID);
+  int timeStamp = snapshot.value['lastMessageSentTime'];
+  chatRoom = ChatRoomModel(
+      chatUID:  chatUID,
+      members:  members.keys.toList(),
+      lastMessageSent: lastMessage,
+      lastMessageSentUID: messageUID,
+      lastMessageSentTime:  timeStamp)
+  ;
 
   //chatRoom = ChatRoomModel.fromSnapshot(snapshot);
   return chatRoom;
@@ -56,44 +63,35 @@ Future<String> getChatMessage(String chatUID, String messageUID) async {
 Future<void> insertChatMessage(String senderId, String receiverId, String message) async {
 
   String chatUID = getChatUID(senderId, receiverId);
-  //String chatUID = senderId.hashCode <= receiverId.hashCode ? '$senderId-$receiverId' : '$receiverId-$senderId';
+
+  userChatsRef.child(senderId).update({
+    chatUID : true
+  });
+  userChatsRef.child(receiverId).update({
+    chatUID : true
+  });
 
   DatabaseReference newMessageRef = chatMessagesRef.child(chatUID).push();
   String newMessageUID = newMessageRef.key;
 
-  newMessageRef.set({
+  int timeStamp = DateTime.now().millisecondsSinceEpoch;
+  
+  newMessageRef.update({
     'sentBy' : senderId,
-    'messageTime' : DateTime.now().millisecondsSinceEpoch.toString() ,
-    //'invertedMessageTime' : (0 - DateTime.now().millisecondsSinceEpoch).toString(),
+    'messageTime' : timeStamp ,
     'message' : message
   });
 
-  chatRef.child(chatUID).child('lastMessageSent').set(newMessageUID);
-//  chatRef.child(chatUID).set({
-//    'lastMessageSent' : newMessageUID
-//  });
+  Map members = {
+    senderId : true,
+    receiverId : true
+  };
 
-  //chatRef.child('chatUID').set();
-
-  //Parameters:
-  //userModel, contactModel
-
-  //Check in /chats/ if it has chatUID
-  //if it doesnt, create record with the members,
-      //Also reference this chatUID to /userChats/userUID
-
-//  if (id.hashCode <= peerId.hashCode) {
-//    groupChatId = '$id-$peerId';
-//  } else {
-//    groupChatId = '$peerId-$id';
-//  }
-  //Then, insert messageUID as LastMEssageSent
-
-  //Insert this record to /userChats/userUID
-  //
-
-
-  //Insert Message to /chatMessages/
+  chatRef.child(chatUID).update({
+    'members' : members,
+    'lastMessageSent' : newMessageUID,
+    'lastMessageSentTime' : timeStamp,
+  });
 }
 
 Future<void> createUserAssociation(String uniqueAuthId, String publicId){
@@ -131,17 +129,17 @@ Future<UserModel> getUserModelForPublicId(String publicId) async{
 
 }
 
-dynamic onNewContactsCallback(String publicId, Function(Event) fn) {
+StreamSubscription<Event> contactsCallback(String publicId, Function(Event) fn) {
   return usersContactRef
-      .child(publicId)
+      .child(publicId).orderByKey()
       .onChildAdded
       .listen(fn);
 }
 
-dynamic onNewChatCallback(String publicId, Function(Event) fn){
-  return userChatsRef.child(publicId).onChildAdded.listen(fn);
+StreamSubscription<Event>  chatRoomCallback(String publicId, Function(Event) fn){
+  return userChatsRef.child(publicId).orderByChild('lastMessageSentTime').onChildAdded.listen(fn);
 }
 
-dynamic onChatChangedCallback(String chatUID, Function(Event) fn){
+StreamSubscription<Event>  newMessageCallback(String chatUID, Function(Event) fn){
   return chatRef.child(chatUID).onValue.listen(fn);
 }

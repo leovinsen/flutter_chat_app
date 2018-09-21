@@ -9,11 +9,8 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
   firebase_auth: '^0.5.20'
-  google_sign_in: ^3.0.5
   firebase_database: ^1.0.4
-  cloud_firestore: ^0.7.4
   firebase_storage: ^1.0.2
-  fluttertoast: ^2.0.7
   shared_preferences: ^0.4.2
   image_picker: ^0.4.7
   cached_network_image: ^0.4.1
@@ -51,6 +48,12 @@ flutter:
     - family: Proxima Nova Bold
       fonts:
       - asset: assets/proxima_nova_excn_sbold.otf
+    - family: Helvetica Neue
+      fonts:
+      - asset: assets/helvetica_neue_bold.ttf
+    - family: Helvetica Neue Medium
+      fonts:
+      - asset: assets/helvetica_neue_medium.ttf
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.io/assets-and-images/#resolution-aware.
 

@@ -43,13 +43,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.2"
-  cloud_firestore:
-    dependency: "direct main"
-    description:
-      name: cloud_firestore
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.7.4"
   collection:
     dependency: transitive
     description:
@@ -130,13 +123,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  fluttertoast:
-    dependency: "direct main"
-    description:
-      name: fluttertoast
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.7"
   front_end:
     dependency: transitive
     description:
@@ -151,13 +137,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.7"
-  google_sign_in:
-    dependency: "direct main"
-    description:
-      name: google_sign_in
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.0.5"
   html:
     dependency: transitive
     description:
@@ -421,7 +400,7 @@ packages:
       name: synchronized
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.5.1+1"
+    version: "1.5.2"
   term_glyph:
     dependency: transitive
     description:
@@ -494,4 +473,4 @@ packages:
     version: "2.1.15"
 sdks:
   dart: ">=2.0.0-dev.68.0 <3.0.0"
-  flutter: ">=0.2.4 <2.0.0"
+  flutter: ">=0.1.4 <2.0.0"

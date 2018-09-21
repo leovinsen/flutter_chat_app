@@ -1,0 +1,1 @@
+double listViewCircleAvatarRadius = 25.0;
