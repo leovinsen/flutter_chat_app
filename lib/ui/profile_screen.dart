@@ -20,22 +20,51 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
 
-          Card(
-            child: ListTile(
-              title: Text(user.publicId),
-              subtitle: Text('Others can find you by using your publicID',style: TextStyle(fontSize: 10.0)),
-            ),
-          ),
-
-          Card(
-            child: ListTile(
-              title: Text(user.displayName),
-              trailing: IconButton(icon: Icon(Icons.edit), onPressed: null),
-            ),
-          )
+          publicIdContainer(context),
+          displayNameContainer(context),
 
         ],
       )
     );
   }
+
+  Container publicIdContainer(BuildContext context){
+    return Container(
+        alignment: Alignment.center,
+        child: ListTile(
+          title: Text('Public ID'),
+          subtitle: Text(user.publicId, style: blueSubtitle(context)),
+        ),
+        decoration: whiteBoxDecoration()
+    );
+  }
+
+  Container displayNameContainer(BuildContext context){
+    return Container(
+      alignment: Alignment.center,
+        child: ListTile(
+          title: Text('Display Name'),
+          subtitle: Text(user.displayName, style: blueSubtitle(context),),
+          trailing: IconButton(icon: Icon(Icons.edit), onPressed: null),
+        ),
+      decoration: whiteBoxDecoration(),
+    );
+  }
+
+  Decoration whiteBoxDecoration(){
+    return BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(color: Colors.grey.shade400, blurRadius: 0.1)
+        ]
+    );
+  }
+
+  TextStyle blueSubtitle(BuildContext context){
+    return TextStyle(
+      fontSize: 12.0,
+      color: Theme.of(context).primaryColorDark
+    );
+  }
+
 }

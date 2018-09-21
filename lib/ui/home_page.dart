@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/model/cache_handler.dart';
@@ -9,25 +11,24 @@ import 'package:flutter_chat_app/ui/contacts_tab.dart';
 import 'package:flutter_chat_app/ui/profile_screen.dart';
 import 'package:flutter_chat_app/util/helper.dart' as helper;
 
-class HomePageNew extends StatefulWidget {
+class HomePage extends StatefulWidget {
   final VoidCallback onSignOut;
   final String userPublicId;
-  //final UserModel userModel;
-  HomePageNew({this.onSignOut, this.userPublicId});
-  //HomePageNew({this.userAuthId, this.onSignOut, this.userModel});
+
+  HomePage({this.onSignOut, this.userPublicId});
   @override
   _HomePageNewState createState() => _HomePageNewState();
 }
 
-class _HomePageNewState extends State<HomePageNew> {
+class _HomePageNewState extends State<HomePage> {
 
   UserModel userModel;
 
   List<UserModel> contactsModelList = <UserModel>[];
   List<ChatRoomModel> chatRoomList = <ChatRoomModel>[];
-  List<dynamic> chatRoomSubs = [];
-  var onNewContactsSub;
-  var onNewChatSub;
+  List<StreamSubscription<Event> > chatRoomSubs = [];
+  StreamSubscription<Event>  onNewContactsSub;
+  StreamSubscription<Event>  onNewChatSub;
 
 
   @override
@@ -37,8 +38,8 @@ class _HomePageNewState extends State<HomePageNew> {
     helper.enableCaching();
     //userModel = CacheHandler.getUserModel();
     initUserModel();
-    onNewContactsSub = helper.onNewContactsCallback(widget.userPublicId, onNewContact);
-    onNewChatSub = helper.onNewChatCallback(widget.userPublicId, onNewChat);
+    onNewContactsSub = helper.contactsCallback(widget.userPublicId, onNewContact);
+    onNewChatSub = helper.chatRoomCallback(widget.userPublicId, onNewChat);
   }
 
   initUserModel(){
@@ -74,6 +75,9 @@ class _HomePageNewState extends State<HomePageNew> {
     // TODO: implement dispose
     onNewContactsSub.cancel();
     onNewChatSub.cancel();
+    chatRoomSubs.forEach((sub){
+      sub.cancel();
+    });
     super.dispose();
   }
 
@@ -108,7 +112,7 @@ class _HomePageNewState extends State<HomePageNew> {
         body: TabBarView(
           children: <Widget>[
             //Center(child:Text('A')),Center(child:Text('A')),Center(child:Text('A'))
-            ChatTab(chatRoomList),
+            ChatTab(chatModels: chatRoomList, userModel: userModel,),
             ContactsTab(contacts: contactsModelList, userModel: userModel,),
             ProfileScreen(user: userModel,)
           ],
@@ -137,13 +141,6 @@ class _HomePageNewState extends State<HomePageNew> {
       }
     }
   }
-//
-//  void initializeContactList() async {
-//    List<UserModel> list = await helper.retrieveContacts(getPublicId());
-//    setState(() {
-//      contactsModelList = list;
-//    });
-//  }
 
   void onNewChat(Event event){
     String chatUID = event.snapshot.key;
@@ -153,7 +150,7 @@ class _HomePageNewState extends State<HomePageNew> {
 
       setState(() {
         chatRoomList.add(chatRoom);
-        chatRoomSubs.add(helper.onChatChangedCallback(chatUID, onChatNewMessage));
+        chatRoomSubs.add(helper.newMessageCallback(chatUID, onChatNewMessage));
       });
     });
 
