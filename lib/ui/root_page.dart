@@ -24,8 +24,9 @@ class RootPage extends StatefulWidget {
 ///fullySignedIn means user is logged in, and there is records for his/her publicId
 enum AuthStatus {
   notSignedIn,
-  partiallySignedIn,
-  fullySignedIn,
+  signedIn
+//  partiallySignedIn,
+//  fullySignedIn,
 }
 
 class _RootPageState extends State<RootPage> {
@@ -33,7 +34,7 @@ class _RootPageState extends State<RootPage> {
   final BaseAuth auth = Auth();
 
   String _uniqueAuthId;
-  String _publicId;
+  //String _publicId;
   AuthStatus authStatus = AuthStatus.notSignedIn;
   bool loading = true;
 
@@ -50,7 +51,11 @@ class _RootPageState extends State<RootPage> {
 
     ///2 cases: user has
     if (_uniqueAuthId != null) {
-      checkRegistrationStatus();
+      setState(() {
+        loading = false;
+        authStatus = AuthStatus.signedIn;
+      });
+//      checkRegistrationStatus();
     } else {
       setState(() {
         loading = false;
@@ -82,26 +87,29 @@ class _RootPageState extends State<RootPage> {
   }
 
 
+
+
   ///Checks if the user has entered a username and display name
   ///If yes, proceed, else ask user to fill in additional info
-  checkRegistrationStatus() async {
-
-    ///If publicID (username) is available, then user is fully registered
-    _publicId = await findUserPublicId();
-
-    setState(() {
-      loading = false;
-      authStatus = _publicId != null ? AuthStatus.fullySignedIn : AuthStatus.partiallySignedIn;
-    });
-  }
+//  checkRegistrationStatus() async {
+//
+//    ///If publicID (username) is available, then user is fully registered
+//    _publicId = await findUserPublicId();
+//
+//    setState(() {
+//      loading = false;
+//      authStatus = _publicId != null ? AuthStatus.fullySignedIn : AuthStatus.partiallySignedIn;
+//    });
+//  }
 
   ///TODO: Create anew auth status for partial registration, to remove checkRegistration status and merge with logIn
   void _signIn(String userAuthId) {
     setState(() {
       _uniqueAuthId = userAuthId;
+      authStatus = AuthStatus.signedIn;
     });
-
-    checkRegistrationStatus();
+//
+//    checkRegistrationStatus();
   }
 
   void _signOut() {
@@ -117,14 +125,26 @@ class _RootPageState extends State<RootPage> {
     print('calling build ROOT_PAGE');
     if (loading) {
       return Container(
-        color: Theme.of(context).backgroundColor,
-        alignment: Alignment.center,
-        child: SizedBox(
-            height: 60.0,
-            width: 60.0,
-            child: CircularProgressIndicator(
-              strokeWidth: 4.0,
-            )),
+          color: Theme
+              .of(context)
+              .backgroundColor,
+          padding: const EdgeInsets.all(10.0),
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+
+              SizedBox(
+                  height: 60.0,
+                  width: 60.0,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 4.0,
+                  )),
+              SizedBox(height: 50.0),
+              Text('Signing In...')
+
+            ],
+        )
       );
     } else {
       switch (authStatus) {
@@ -133,24 +153,30 @@ class _RootPageState extends State<RootPage> {
             auth: auth,
             onSignIn: _signIn,
           );
-
-
-
-
-        case AuthStatus.partiallySignedIn:
-          return AdditionalInfoScreen(_uniqueAuthId);
-
-
-        case AuthStatus.fullySignedIn:
-          return ScopedModel<AppData>(
-            model: AppData(_publicId),
-            child: HomePage(
-              //userAuthId: _uniqueAuthId,
-//              userPublicId: _publicId,
-              onSignOut: () => _signOut(),
-              //userModel: _user,
-            ),
-          );
+        case AuthStatus.signedIn:
+          return FutureBuilder(
+              future: findUserPublicId(),
+              builder: (_, snapshot){
+            switch (snapshot.connectionState) {
+              case ConnectionState.none:
+                return Text('Press button to start.');
+              case ConnectionState.active:
+              case ConnectionState.waiting:
+                return Text('Awaiting result...');
+              case ConnectionState.done:
+                if (snapshot.hasError)
+                  return Text('Error: ${snapshot.error}');
+                String publicId = snapshot.data;
+                return publicId == null
+                    ? AdditionalInfoScreen(_uniqueAuthId)
+                    : ScopedModel<AppData>(
+                  model: AppData(publicId),
+                  child: HomePage(
+                    onSignOut: () => _signOut(),
+                  ),
+                );
+            }
+              });
       }
     }
   }
