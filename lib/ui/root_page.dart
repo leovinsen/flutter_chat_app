@@ -19,9 +19,13 @@ class RootPage extends StatefulWidget {
   _RootPageState createState() => _RootPageState();
 }
 
+///notSignedIn means user is not logged In
+///partiallySignedIn means user is logged in, but there is no records for his/her publicId
+///fullySignedIn means user is logged in, and there is records for his/her publicId
 enum AuthStatus {
   notSignedIn,
-  signedIn,
+  partiallySignedIn,
+  fullySignedIn,
 }
 
 class _RootPageState extends State<RootPage> {
@@ -42,40 +46,39 @@ class _RootPageState extends State<RootPage> {
   init() async {
     await CacheHandler.init();
 
-    if (await findUserFirebaseAuthId()) {
+    _uniqueAuthId = await findUserFirebaseAuthId();
+
+    ///2 cases: user has
+    if (_uniqueAuthId != null) {
       checkRegistrationStatus();
     } else {
-      notLoggedIn();
+      setState(() {
+        loading = false;
+      });
     }
   }
 
-  ///TODO: Change to Future<String>
-  Future<bool> findUserFirebaseAuthId() async {
+  Future<String> findUserFirebaseAuthId() async {
     //Get user Auth ID from local storage
-    _uniqueAuthId = CacheHandler.getUserFirebaseAuthId();
+     String uniqueAuthId = CacheHandler.getUserFirebaseAuthId();
 
     //If not found, try online
-    if (_uniqueAuthId == null) _uniqueAuthId = await auth.currentUser();
+    if (uniqueAuthId == null) _uniqueAuthId = await auth.currentUser();
 
-    return _uniqueAuthId != null;
+    return uniqueAuthId;
   }
 
   ///TODO: Change to Future<String>
-  Future<bool> findUserPublicId() async {
-    _publicId = CacheHandler.getUserPublicId();
+  Future<String> findUserPublicId() async {
+    String _publicId = CacheHandler.getUserPublicId();
 
-    if (_publicId == null)
-      _publicId = await getUserPublicId(_uniqueAuthId);
-
-    return _publicId != null;
-  }
-
-  ///TODO: MERGE with FinduserPublicId
-  Future<String> getUserPublicId(String uniqueAuthId) async {
-    var db = FirebaseDatabase.instance;
-    var usersBranch = db.reference().child('users');
-    DataSnapshot snapshot = await usersBranch.child(uniqueAuthId).once();
-    return snapshot.value;
+    if (_publicId == null){
+      var db = FirebaseDatabase.instance;
+      var usersBranch = db.reference().child('users');
+      DataSnapshot snapshot = await usersBranch.child(_uniqueAuthId).once();
+      _publicId = snapshot.value;
+    }
+    return _publicId;
   }
 
 
@@ -84,39 +87,18 @@ class _RootPageState extends State<RootPage> {
   checkRegistrationStatus() async {
 
     ///If publicID (username) is available, then user is fully registered
-    if (await findUserPublicId()) {
-      logIn();
-    } else {
-      _publicId = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AdditionalInfoScreen(_uniqueAuthId),
-          ));
+    _publicId = await findUserPublicId();
 
-      logIn();
-    }
-  }
-
-  void notLoggedIn() {
     setState(() {
       loading = false;
-      authStatus = AuthStatus.notSignedIn;
+      authStatus = _publicId != null ? AuthStatus.fullySignedIn : AuthStatus.partiallySignedIn;
     });
   }
-
-  void logIn() {
-    setState(() {
-      authStatus = AuthStatus.signedIn;
-      loading = false;
-    });
-  }
-
 
   ///TODO: Create anew auth status for partial registration, to remove checkRegistration status and merge with logIn
   void _signIn(String userAuthId) {
     setState(() {
       _uniqueAuthId = userAuthId;
-      //authStatus = AuthStatus.signedIn;
     });
 
     checkRegistrationStatus();
@@ -147,11 +129,19 @@ class _RootPageState extends State<RootPage> {
     } else {
       switch (authStatus) {
         case AuthStatus.notSignedIn:
-          return new LoginPage(
+          return LoginPage(
             auth: auth,
             onSignIn: _signIn,
           );
-        case AuthStatus.signedIn:
+
+
+
+
+        case AuthStatus.partiallySignedIn:
+          return AdditionalInfoScreen(_uniqueAuthId);
+
+
+        case AuthStatus.fullySignedIn:
           return ScopedModel<AppData>(
             model: AppData(_publicId),
             child: HomePage(
