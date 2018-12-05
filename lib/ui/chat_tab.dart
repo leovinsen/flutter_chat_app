@@ -89,7 +89,7 @@ class ChatTab extends StatelessWidget {
   }
 
   String getContactPublicId(int index){
-    return excludeUser(chatModels[index].members);
+    return excludeUser(chatModels[index].allMembersPublicId);
   }
 
   void handleClick(BuildContext context, int index) {

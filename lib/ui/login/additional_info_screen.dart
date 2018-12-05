@@ -1,9 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/util/firebase_handler.dart' as helper;
 import 'package:flutter_chat_app/model/cache_handler.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
+import 'package:flutter_chat_app/util/firebase_handler.dart' as helper;
 
 class AdditionalInfoScreen extends StatefulWidget {
   final String _uniqueAuthId;

@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_chat_app/model/cache_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,22 +17,18 @@ class Auth implements BaseAuth {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   Future<ResultMessage> signIn(String email, String password) async {
-    ResultMessage result;
+    var result;
     //String result;
     try{
       FirebaseUser user = await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
       CacheHandler.storeUserAuthId(user.uid);
-      result.message = user.uid;
       result = ResultMessage(message: user.uid, code: ResultCode.success);
-      //return user.uid;
     } catch (e){
       result = ResultMessage(message: e.toString(), code:ResultCode.wrongEmail);
       print(e.toString());
     }
 
     return result;
-
-    //return result;
   }
 
   Future<String> createUser(String email, String password) async {

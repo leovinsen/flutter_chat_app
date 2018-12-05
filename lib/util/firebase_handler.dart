@@ -57,14 +57,15 @@ import 'package:flutter_chat_app/model/user_data.dart';
     ChatRoomData chatRoom;
     DataSnapshot snapshot = await _chatRef.child(chatUID).once();
     Map<String, bool> members = Map<String, bool>.from(snapshot.value['members']);
+
     String messageUID = snapshot.value['lastMessageSent'];
     String lastMessage = await getChatMessage(chatUID, messageUID);
     int timeStamp = snapshot.value['lastMessageSentTime'];
     chatRoom = ChatRoomData(
         chatUID:  chatUID,
-        members:  members.keys.toList(),
-        lastMessageSent: lastMessage,
+        allMembersPublicId:  members.keys.toList(),
         lastMessageSentUID: messageUID,
+        lastMessageSent: lastMessage,
         lastMessageSentTime:  timeStamp)
     ;
 

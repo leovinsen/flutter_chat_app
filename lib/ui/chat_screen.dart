@@ -55,6 +55,7 @@ class ChatScreenState extends State<ChatScreen> {
 
                 )
             ),
+            SizedBox(height:5.0),
             new Divider(height: 1.0),
             new Container(
               child: _buildComposer(),
@@ -145,11 +146,13 @@ class MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double width80 = MediaQuery.of(context).size.width*0.8;
+    double topMargin = sender == MessageSender.user ? 2.0 : 8.0;
+
     return Row(
       mainAxisAlignment: sender == MessageSender.user ? MainAxisAlignment.end : MainAxisAlignment.start,
       children: <Widget>[
         Card(
-          margin: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+          margin: EdgeInsets.only(left: 10.0, right: 10.0, top: topMargin, bottom: 2.0),
           color: sender == MessageSender.user ? Theme.of(context).accentColor.withOpacity(0.5) : Colors.white,
           child: Container(
             constraints: BoxConstraints(maxWidth: width80),
@@ -167,34 +170,5 @@ class MessageBubble extends StatelessWidget {
       ],
 
     );
-//    return new SizeTransition(
-//      sizeFactor: new CurvedAnimation(
-//          parent: animationController, curve: Curves.easeOut),
-//      axisAlignment: 0.0,
-//      child: new Container(
-//        margin: const EdgeInsets.symmetric(vertical: 8.0),
-//        child: new Row(
-//          crossAxisAlignment: CrossAxisAlignment.start,
-//          children: <Widget>[
-//            new Container(
-//              margin: const EdgeInsets.only(right: 18.0),
-//              child: new CircleAvatar(child: new Text(senderName[0])),
-//            ),
-//            new Expanded(
-//              child: new Column(
-//                crossAxisAlignment: CrossAxisAlignment.start,
-//                children: <Widget>[
-//                  new Text(senderName, style: Theme.of(ctx).textTheme.subhead),
-//                  new Container(
-//                    margin: const EdgeInsets.only(top: 6.0),
-//                    child: new Text(message),
-//                  ),
-//                ],
-//              ),
-//            ),
-//          ],
-//        ),
-//      ),
-//    );
   }
 }

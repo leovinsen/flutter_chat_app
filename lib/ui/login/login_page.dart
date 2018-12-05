@@ -3,6 +3,8 @@ import 'package:flutter_chat_app/model/auth.dart';
 import 'package:flutter_chat_app/model/cache_handler.dart';
 
 class LoginPage extends StatefulWidget {
+
+
   final BaseAuth auth;
   final void Function(String) onSignIn;
   //final VoidCallback onSignIn;
@@ -191,10 +193,6 @@ class _LoginPageNewState extends State<LoginPage> {
             else {
               createDialog(context, 'Error', rm.message);
             }
-
-//            widget.auth.signIn(_email, _password).then((uniqueId){
-//              widget.onSignIn(uniqueId);
-//            });
             break;
           case FormType.register:
             widget.auth.createUser(_email, _password).then((uniqueId){
@@ -207,6 +205,8 @@ class _LoginPageNewState extends State<LoginPage> {
         }
       } catch (e){
         print(e);
+      } finally {
+        loggingIn = false;
       }
     }
   }

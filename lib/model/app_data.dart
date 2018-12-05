@@ -46,14 +46,14 @@ class AppData extends Model{
   initUserModel(String publicId){
 
 
-    //Retrieve userData from cache
+    ///Retrieve userData from cache
     String displayName = CacheHandler.getUserDisplayName();
     String thumbUrl = CacheHandler.getUserThumbUrl();
 
     _userData = UserData(publicId, displayName, thumbUrl);
     notifyListeners();
 
-    //Retrieve from firebase
+    ///Retrieve from firebase
     firebaseHandler.getUserModelForPublicId(publicId).then((data){
       _userData = data;
       notifyListeners();
@@ -61,11 +61,17 @@ class AppData extends Model{
   }
 
 
-
+  /*
+    Callback for branch userChats
+    Retrieves active chats which involves the user
+    Then, retrieve the information about the chat rooms
+   */
   void onNewChat(Event event){
+    //Chat Room ID
     String chatUID = event.snapshot.key;
     print('onNewChat: $chatUID');
 
+    //Retrieve info about the chat rooms. e.g. members & last message sent
     firebaseHandler.getChatRoomModel(chatUID).then((chatRoom){
       _chatRoomsData.add(chatRoom);
       _chatRoomSubs.add(firebaseHandler.newMessageCallback(chatUID, onChatNewMessage));

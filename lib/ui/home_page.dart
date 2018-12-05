@@ -17,23 +17,23 @@ class HomePage extends StatefulWidget {
 
 class _HomePageNewState extends State<HomePage> {
 
+  var appData;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    var appData = AppData.of(context);
-    appData.initSubscriptions();
+    appData =AppData.of(context);
   }
 
   @override
   void dispose() {
-    var appData = AppData.of(context);
-    appData.cancelSubscriptions();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    appData.initSubscriptions();
     return ScopedModelDescendant<AppData>(
       builder: (context, child, model) {
         return DefaultTabController(
@@ -49,7 +49,10 @@ class _HomePageNewState extends State<HomePage> {
 
                 IconButton(
                   icon: Icon(Icons.exit_to_app),
-                  onPressed: widget.onSignOut,
+                  onPressed: (){
+                    appData.cancelSubscriptions();
+                    widget.onSignOut();
+                  },
                 )
               ],
 
@@ -64,8 +67,10 @@ class _HomePageNewState extends State<HomePage> {
 
             body: TabBarView(
               children: <Widget>[
-                ChatTab(chatModels: model.chatRoomData, userPublicId: model.userPublicId),
-                ContactsTab(contacts: model.contactsData, userPublicId: model.userPublicId),
+                ChatTab(chatModels: model.chatRoomData,
+                    userPublicId: model.userPublicId),
+                ContactsTab(contacts: model.contactsData,
+                    userPublicId: model.userPublicId),
                 ProfileScreen(user: model.userData,)
               ],
             ),
@@ -74,21 +79,22 @@ class _HomePageNewState extends State<HomePage> {
       },
     );
   }
+
   void addContact() async {
-    final results = await Navigator.push(context, MaterialPageRoute(builder: (_) => AddContactScreen()));
-    if(results != null){
+    final results = await Navigator.push(
+        context, MaterialPageRoute(builder: (_) => AddContactScreen()));
+    if (results != null) {
       var model = AppData.of(context);
 
       String contactPublicId = results.toString().toLowerCase();
 
-      bool exist = await firebaseHandler.contactExists(model.userPublicId, contactPublicId);
+      bool exist = await firebaseHandler.contactExists(
+          model.userPublicId, contactPublicId);
 
-      if (exist){
+      if (exist) {
         //TELL USER THE CONTACT EXISTS ALREADY
         print('Contact Exists alrd');
       } else {
-
-
         //Push contact to firebase
         firebaseHandler.addContact(model.userPublicId, contactPublicId);
         //Retrieve user info of the said contact
@@ -97,3 +103,4 @@ class _HomePageNewState extends State<HomePage> {
       }
     }
   }
+}

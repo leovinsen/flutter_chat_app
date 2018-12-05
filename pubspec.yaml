@@ -8,12 +8,11 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
-  firebase_auth: '^0.5.20'
-  firebase_database: ^1.0.4
-  firebase_storage: ^1.0.2
+  firebase_auth: ^0.6.6
+  firebase_database: ^1.0.5
+  firebase_storage: ^1.0.4
   shared_preferences: ^0.4.2
-  image_picker: ^0.4.7
-  cached_network_image: ^0.4.1
+  image_picker: ^0.4.10
   intl: ^0.15.7
   scoped_model: '^0.3.0'
 
