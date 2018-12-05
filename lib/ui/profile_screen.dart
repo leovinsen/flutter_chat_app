@@ -18,9 +18,11 @@ class ProfileScreen extends StatefulWidget {
 
 class ProfileScreenState extends State<ProfileScreen> {
 
-  Future _pickImage() async {
+  Future _pickImage(ImageSource imgSource) async {
+    if(imgSource == null) return;
+
     String publicId = widget.user.publicId;
-    File imageFile = await ImagePicker.pickImage(source: ImageSource.camera, maxWidth: 400, maxHeight: 400);
+    File imageFile = await ImagePicker.pickImage(source: imgSource, maxWidth: 400, maxHeight: 400);
     StorageReference ref =
     FirebaseStorage.instance.ref().child(publicId).child("profile_picture.jpg");
     StorageUploadTask uploadTask = ref.putFile(imageFile);
@@ -41,7 +43,7 @@ class ProfileScreenState extends State<ProfileScreen> {
           Container(
             margin: const EdgeInsets.all(30.0),
             child: GestureDetector(
-              onTap: ()=> _pickImage(),
+              onTap: () async => _pickImage(await chooseImageSource()),
               child: CircleAvatar(
                 radius: 100.0,
                 child: Image.asset('assets/profile_default_thumbnail_64px.png', fit: BoxFit.cover,),
@@ -54,6 +56,32 @@ class ProfileScreenState extends State<ProfileScreen> {
 
         ],
       )
+    );
+  }
+
+  Future<ImageSource> chooseImageSource() async {
+    return await showDialog(
+        context: context,
+        builder: (_) {
+          return AlertDialog(
+            title: Text('Choose picture from'),
+            content: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  IconButton(
+                    icon: Icon(Icons.camera),
+                    onPressed: () =>
+                        Navigator.of(context).pop(ImageSource.camera),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.photo),
+                    onPressed: () =>
+                        Navigator.of(context).pop(ImageSource.gallery),
+                  )
+                ]
+            ),
+          );
+        }
     );
   }
 

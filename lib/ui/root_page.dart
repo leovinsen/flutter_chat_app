@@ -19,14 +19,9 @@ class RootPage extends StatefulWidget {
   _RootPageState createState() => _RootPageState();
 }
 
-///notSignedIn means user is not logged In
-///partiallySignedIn means user is logged in, but there is no records for his/her publicId
-///fullySignedIn means user is logged in, and there is records for his/her publicId
 enum AuthStatus {
   notSignedIn,
   signedIn
-//  partiallySignedIn,
-//  fullySignedIn,
 }
 
 class _RootPageState extends State<RootPage> {
@@ -52,18 +47,6 @@ class _RootPageState extends State<RootPage> {
       if(_uniqueAuthId != null) authStatus = AuthStatus.signedIn;
       loading = false;
     });
-
-
-//    if (_uniqueAuthId != null) {
-//      setState(() {
-//        loading = false;
-//        authStatus = AuthStatus.signedIn;
-//      });
-//    } else {
-//      setState(() {
-//        loading = false;
-//      });
-//    }
   }
 
   Future<String> getUserAuthToken() async {
@@ -71,7 +54,7 @@ class _RootPageState extends State<RootPage> {
      String uniqueAuthId = CacheHandler.getUserFirebaseAuthId();
 
     //If not found, try online
-    if (uniqueAuthId == null) _uniqueAuthId = await auth.currentUser();
+    if (uniqueAuthId == null) uniqueAuthId = await auth.currentUser();
 
     return uniqueAuthId;
   }

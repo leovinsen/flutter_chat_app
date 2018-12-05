@@ -5,8 +5,8 @@ import 'package:flutter_chat_app/util/firebase_handler.dart' as helper;
 
 class AdditionalInfoScreen extends StatefulWidget {
   final String _uniqueAuthId;
-  final Function refresh;
-  AdditionalInfoScreen(this._uniqueAuthId, this.refresh);
+  final Function _refresh;
+  AdditionalInfoScreen(this._uniqueAuthId, this._refresh);
   @override
   _AdditionalInfoScreenState createState() => _AdditionalInfoScreenState();
 }
@@ -106,7 +106,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
           CacheHandler.storeUserDisplayName(_displayName);
           CacheHandler.storeUserThumbnailUrl(thumbUrl);
 
-          widget.refresh();
+          widget._refresh();
 
           //Navigator.pop(context, _publicId);
         });
