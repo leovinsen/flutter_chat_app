@@ -8,7 +8,6 @@ import 'package:flutter_chat_app/model/cache_handler.dart';
 import 'package:flutter_chat_app/ui/home_page.dart';
 import 'package:flutter_chat_app/ui/login/additional_info_screen.dart';
 import 'package:flutter_chat_app/ui/login/login_page.dart';
-import 'package:scoped_model/scoped_model.dart';
 //import 'package:flutter_chat_app/util/firebase_handler.dart' as helper;
 
 
@@ -130,24 +129,43 @@ class _RootPageState extends State<RootPage> {
                 //return Text('Press button to start.');
               case ConnectionState.active:
               case ConnectionState.waiting:
-                //return Text('Awaiting result...');
+            //return Text('Awaiting result...');
               case ConnectionState.done:
                 if (snapshot.hasError)
                   return Text('Error: ${snapshot.error}');
                 String publicId = snapshot.data;
 
-                return publicId == null
-                    ? AdditionalInfoScreen(_uniqueAuthId, (){
-                      setState(() {
+                if (publicId == null) {
+                  return AdditionalInfoScreen(_uniqueAuthId, () {
+                    setState(() {
 
+                    });
                       });
-                })
-                    : ScopedModel<AppData>(
-                  model: AppData(publicId),
-                  child: HomePage(
-                    onSignOut: () => _signOut(),
-                  ),
-                );
+                } else {
+                  AppData.of(context).initUserModel(publicId);
+                  return HomePage(
+                    onSignOut: ()=> _signOut(),
+                  );
+                }
+
+//                return publicId == null
+//                    ? AdditionalInfoScreen(_uniqueAuthId, (){
+//                      setState(() {
+//
+//                      });
+//                })
+//                    : HomePage(
+//                  onSignOut: () => _signOut(),
+//                );
+
+
+
+//                    : ScopedModel<AppData>(
+//                  model: AppData(publicId),
+//                  child: HomePage(
+//                    onSignOut: () => _signOut(),
+//                  ),
+//                );
             }
               });
       }

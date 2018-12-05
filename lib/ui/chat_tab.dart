@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import '../util/dimensions.dart' as dimen;
 
 class ChatTab extends StatelessWidget {
-//  final String userPublicId;
   final List<ChatRoomData> chatModels;
   final DateFormat dateFormat = new DateFormat('dd/MM/yyyy');
 
@@ -60,17 +59,6 @@ class ChatTab extends StatelessWidget {
 
   Widget title(BuildContext context, int index) {
     return Text(getContactName(context, index));
-//    String contactPublicId = getContactName(index);
-//    return FutureBuilder(
-//        future: firebaseHandler.getUserModelForPublicId(contactPublicId),
-//        builder: (_, snapshot){
-//      if(snapshot.hasData){
-//        var model = snapshot.data as UserData;
-//        return Text(model.displayName);
-//      } else {
-//        return Text(contactPublicId);
-//      }
-//    });
   }
 
   TextStyle dateText(){
@@ -78,11 +66,6 @@ class ChatTab extends StatelessWidget {
       color: Colors.grey
     );
   }
-
-//  String excludeUser(List<String> list){
-//    if(list.length > 1)list.remove(userPublicId);
-//    return list.first;
-//  }
 
   String getContactName(BuildContext context, int index) {
     AppData appData = AppData.of(context);
@@ -93,20 +76,21 @@ class ChatTab extends StatelessWidget {
 
   String getContactPublicId(BuildContext context, int index){
     AppData appData = AppData.of(context);
-    List s = List.from(chatModels[index].allMembers)
+    List s = List.from(chatModels[index].allMembersPublicId)
       ..remove(appData.userPublicId);
-    return s.first();
+    return s.first;
   }
 
   void handleClick(BuildContext context, int index) {
     AppData appData = AppData.of(context);
     String contactPublicId = getContactPublicId(context, index);
+    print(appData.contactsData);
     UserData contactModel = appData.contactsData.singleWhere((contactModel){
       return contactModel.publicId == contactPublicId;
     });
 
     Navigator.push(context, MaterialPageRoute(
-        builder: (context) => ChatScreen(userPublicId: appData.userPublicId, contactModel: contactModel, ))
+        builder: (context) => ChatScreen(userPublicId: appData.userPublicId, contactModel: contactModel, chatUID: chatModels[index].chatUID, ))
     );
 
   }

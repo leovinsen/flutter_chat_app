@@ -16,13 +16,14 @@ class HomePage extends StatefulWidget {
 
 class _HomePageNewState extends State<HomePage> {
 
-  var appData;
+  AppData appData;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    appData =AppData.of(context);
+    appData = AppData.of(context);
+    appData.initSubscriptions();
   }
 
   @override
@@ -32,7 +33,7 @@ class _HomePageNewState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    appData.initSubscriptions();
+    //appData.initSubscriptions();
     return ScopedModelDescendant<AppData>(
       builder: (context, child, model) {
         return DefaultTabController(
@@ -41,6 +42,16 @@ class _HomePageNewState extends State<HomePage> {
             appBar: AppBar(
               title: Text('Chat App'),
               actions: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.refresh),
+                  onPressed: () {
+                    setState(() {
+                      model.contactsData.forEach((user){
+                        print(user.toString());
+                      });
+                    });
+                  },
+                ),
                 IconButton(
                   icon: Icon(Icons.person_add),
                   onPressed: addContact,

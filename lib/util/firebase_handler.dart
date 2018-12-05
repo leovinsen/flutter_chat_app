@@ -28,9 +28,9 @@ import 'package:flutter_chat_app/model/user_data.dart';
 //    _userChatsRef = db.reference().child('userChats');
 //  }
 
-  Query queryMessagesOrderByTimeAscending(String chatUID){
-    return _chatMessagesRef.child(chatUID).orderByChild('messageTime');
-  }
+//  Query queryMessagesOrderByTimeAscending(String chatUID){
+//    return _chatMessagesRef.child(chatUID).orderByChild('messageTime');
+//  }
 
 //  void createChatRoom(String senderPublicId, receiverPublicId){
 //    String chatUID = getChatUID(senderPublicId, receiverPublicId);
