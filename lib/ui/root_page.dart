@@ -34,7 +34,6 @@ class _RootPageState extends State<RootPage> {
   final BaseAuth auth = Auth();
 
   String _uniqueAuthId;
-  //String _publicId;
   AuthStatus authStatus = AuthStatus.notSignedIn;
   bool loading = true;
 
@@ -47,23 +46,27 @@ class _RootPageState extends State<RootPage> {
   init() async {
     await CacheHandler.init();
 
-    _uniqueAuthId = await findUserFirebaseAuthId();
+    _uniqueAuthId = await getUserAuthToken();
 
-    ///2 cases: user has
-    if (_uniqueAuthId != null) {
-      setState(() {
-        loading = false;
-        authStatus = AuthStatus.signedIn;
-      });
-//      checkRegistrationStatus();
-    } else {
-      setState(() {
-        loading = false;
-      });
-    }
+    setState(() {
+      if(_uniqueAuthId != null) authStatus = AuthStatus.signedIn;
+      loading = false;
+    });
+
+
+//    if (_uniqueAuthId != null) {
+//      setState(() {
+//        loading = false;
+//        authStatus = AuthStatus.signedIn;
+//      });
+//    } else {
+//      setState(() {
+//        loading = false;
+//      });
+//    }
   }
 
-  Future<String> findUserFirebaseAuthId() async {
+  Future<String> getUserAuthToken() async {
     //Get user Auth ID from local storage
      String uniqueAuthId = CacheHandler.getUserFirebaseAuthId();
 
@@ -74,7 +77,7 @@ class _RootPageState extends State<RootPage> {
   }
 
   ///TODO: Change to Future<String>
-  Future<String> findUserPublicId() async {
+  Future<String> getUserPublicId() async {
     String _publicId = CacheHandler.getUserPublicId();
 
     if (_publicId == null){
@@ -86,30 +89,12 @@ class _RootPageState extends State<RootPage> {
     return _publicId;
   }
 
-
-
-
-  ///Checks if the user has entered a username and display name
-  ///If yes, proceed, else ask user to fill in additional info
-//  checkRegistrationStatus() async {
-//
-//    ///If publicID (username) is available, then user is fully registered
-//    _publicId = await findUserPublicId();
-//
-//    setState(() {
-//      loading = false;
-//      authStatus = _publicId != null ? AuthStatus.fullySignedIn : AuthStatus.partiallySignedIn;
-//    });
-//  }
-
   ///TODO: Create anew auth status for partial registration, to remove checkRegistration status and merge with logIn
   void _signIn(String userAuthId) {
     setState(() {
       _uniqueAuthId = userAuthId;
       authStatus = AuthStatus.signedIn;
     });
-//
-//    checkRegistrationStatus();
   }
 
   void _signOut() {
@@ -155,20 +140,25 @@ class _RootPageState extends State<RootPage> {
           );
         case AuthStatus.signedIn:
           return FutureBuilder(
-              future: findUserPublicId(),
+              future: getUserPublicId(),
               builder: (_, snapshot){
             switch (snapshot.connectionState) {
               case ConnectionState.none:
-                return Text('Press button to start.');
+                //return Text('Press button to start.');
               case ConnectionState.active:
               case ConnectionState.waiting:
-                return Text('Awaiting result...');
+                //return Text('Awaiting result...');
               case ConnectionState.done:
                 if (snapshot.hasError)
                   return Text('Error: ${snapshot.error}');
                 String publicId = snapshot.data;
+
                 return publicId == null
-                    ? AdditionalInfoScreen(_uniqueAuthId)
+                    ? AdditionalInfoScreen(_uniqueAuthId, (){
+                      setState(() {
+
+                      });
+                })
                     : ScopedModel<AppData>(
                   model: AppData(publicId),
                   child: HomePage(
