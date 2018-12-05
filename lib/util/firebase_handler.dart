@@ -33,19 +33,15 @@ import 'package:flutter_chat_app/model/user_data.dart';
     return _chatMessagesRef.child(chatUID).orderByChild('messageTime');
   }
 
-//  void enableCaching(){
-//    db.setPersistenceEnabled(true);
+//  void createChatRoom(String senderPublicId, receiverPublicId){
+//    String chatUID = getChatUID(senderPublicId, receiverPublicId);
+//
+//    _chatRef.child(chatUID).child('members').child(senderPublicId).set(true);
+//    _chatRef.child(chatUID).child('members').child(receiverPublicId).set(true);
+//
+//    _userChatsRef.child(senderPublicId).child(chatUID).set(true);
+//    _userChatsRef.child(receiverPublicId).child(chatUID).set(true);
 //  }
-
-  void createChatRoom(String senderPublicId, receiverPublicId){
-    String chatUID = getChatUID(senderPublicId, receiverPublicId);
-
-    _chatRef.child(chatUID).child('members').child(senderPublicId).set(true);
-    _chatRef.child(chatUID).child('members').child(receiverPublicId).set(true);
-
-    _userChatsRef.child(senderPublicId).child(chatUID).set(true);
-    _userChatsRef.child(receiverPublicId).child(chatUID).set(true);
-  }
 
 
 
@@ -130,10 +126,10 @@ import 'package:flutter_chat_app/model/user_data.dart';
     return _usersInfoRef.child(model.publicId).set(model.toJson());
   }
 
-  Future<String> getUserPublicId(String uniqueAuthId)async {
-    DataSnapshot snapshot = await _usersRef.child(uniqueAuthId).once();
-    return snapshot.value;
-  }
+//  Future<String> getUserPublicId(String uniqueAuthId)async {
+//    DataSnapshot snapshot = await _usersRef.child(uniqueAuthId).once();
+//    return snapshot.value;
+//  }
 
   Future<UserData> getUserModelForPublicId(String publicId) async{
     UserData model;

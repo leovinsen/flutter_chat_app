@@ -5,7 +5,6 @@ import 'package:flutter_chat_app/model/user_data.dart';
 import 'package:flutter_chat_app/util/firebase_handler.dart' as firebaseHandler;
 
 class ChatScreen extends StatefulWidget {
-  //final UserData userModel;
   final String userPublicId;
   final UserData contactModel;
   ChatScreen({this.userPublicId, this.contactModel});
