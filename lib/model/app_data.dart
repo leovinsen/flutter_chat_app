@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/model/cache_handler.dart';
 import 'package:flutter_chat_app/model/chat_room_data.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
 import 'package:scoped_model/scoped_model.dart';
@@ -12,10 +11,8 @@ import '../util/firebase_handler.dart' as firebaseHandler;
 
 class AppData extends Model{
 
-  //FirebaseHandler _firebaseHandler;
-
-  String _firebaseAuthId;
-  UserData _userData;
+  final FirebaseDatabase _db = FirebaseDatabase.instance;
+//  UserData _userData;
   List<UserData> _contactsData = [];
   List<ChatRoomData> _chatRoomsData = [];
 
@@ -23,43 +20,43 @@ class AppData extends Model{
   StreamSubscription<Event>  _onNewContactsSub;
   StreamSubscription<Event>  _onNewChatSub;
 
-  //FirebaseHandler get firebaseHandler => _firebaseHandler;
+  String _userPublicId;
+  String _userDisplayName;
+  String _userThumbUrl;
 
-  String get firebaseAuthId => _firebaseAuthId;
-
-  String get userPublicId => _userData.publicId;
-  String get userDisplayName => _userData.displayName;
-  String get userThumbUrl => _userData.displayName;
-  UserData get userData => _userData;
+  String get userPublicId => _userPublicId; //
+//  String get userPublicId => _userData.publicId;
+//  String get userDisplayName => _userData.displayName;
+//  String get userThumbUrl => _userData.displayName;
+//  UserData get userData => _userData;
 
   List<UserData> get contactsData => _contactsData;
 
   List<ChatRoomData> get chatRoomData => _chatRoomsData;
 
   AppData(String publicId){
+    _userPublicId = publicId;
     initUserModel(publicId);
-    //initSubscriptions();
   }
 
 
 
-  initUserModel(String publicId){
+  initUserModel(String publicId) async {
+
+//
+//    ///Retrieve userData from cache
+//    String displayName = CacheHandler.getUserDisplayName();
+//    String thumbUrl = CacheHandler.getUserThumbUrl();
+//
+//    _userData = UserData(publicId, displayName, thumbUrl);
+//    notifyListeners();
 
 
-    ///Retrieve userData from cache
-    String displayName = CacheHandler.getUserDisplayName();
-    String thumbUrl = CacheHandler.getUserThumbUrl();
+    var snapshot = await _db.reference().child('usersInfo/$publicId').once();
+    _userDisplayName = snapshot.value['displayName'];
+    _userThumbUrl = snapshot.value['thumbUrl'];
 
-    _userData = UserData(publicId, displayName, thumbUrl);
-    notifyListeners();
-
-    ///Retrieve from firebase
-    firebaseHandler.getUserModelForPublicId(publicId).then((data){
-      _userData = data;
-      notifyListeners();
-    });
   }
-
 
   /*
     Callback for branch userChats
@@ -118,5 +115,9 @@ class AppData extends Model{
 
   static AppData of(BuildContext context) =>
       ScopedModel.of<AppData>(context);
+
+  String get userDisplayName => _userDisplayName;
+
+  String get userThumbUrl => _userThumbUrl;
 
 }

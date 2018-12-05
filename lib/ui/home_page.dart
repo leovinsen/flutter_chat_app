@@ -3,7 +3,6 @@ import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/ui/add_contact_screen.dart';
 import 'package:flutter_chat_app/ui/chat_tab.dart';
 import 'package:flutter_chat_app/ui/contacts_tab.dart';
-import 'package:flutter_chat_app/ui/profile_screen.dart';
 import 'package:flutter_chat_app/util/firebase_handler.dart' as firebaseHandler;
 import 'package:scoped_model/scoped_model.dart';
 
@@ -71,7 +70,7 @@ class _HomePageNewState extends State<HomePage> {
                     userPublicId: model.userPublicId),
                 ContactsTab(contacts: model.contactsData,
                     userPublicId: model.userPublicId),
-                ProfileScreen(user: model.userData,)
+                //ProfileScreen(user: model.userData,)
               ],
             ),
           ),
