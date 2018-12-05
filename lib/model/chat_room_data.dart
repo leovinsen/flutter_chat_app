@@ -1,16 +1,18 @@
 class ChatRoomData {
   String chatUID;
   List<String> allMembersPublicId;
-  String lastMessageSent;
   String lastMessageSentUID;
   int lastMessageSentTime;
 
-  ChatRoomData(
-      {this.chatUID,
-      this.allMembersPublicId,
-      this.lastMessageSent,
-      this.lastMessageSentUID,
-      this.lastMessageSentTime});
+  String lastMessageSent;
+  List<String> allMembers;
+
+  ChatRoomData({this.chatUID,
+    this.allMembersPublicId,
+    this.allMembers,
+    this.lastMessageSent,
+    this.lastMessageSentUID,
+    this.lastMessageSentTime});
 
 //
 //  ChatRoomData.fromSnapshot(DataSnapshot snapshot)

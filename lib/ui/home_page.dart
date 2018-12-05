@@ -67,7 +67,8 @@ class _HomePageNewState extends State<HomePage> {
             body: TabBarView(
               children: <Widget>[
                 ChatTab(chatModels: model.chatRoomData,
-                    userPublicId: model.userPublicId),
+//                    userPublicId: model.userPublicId
+                ),
                 ContactsTab(contacts: model.contactsData,
                     userPublicId: model.userPublicId),
                 //ProfileScreen(user: model.userData,)

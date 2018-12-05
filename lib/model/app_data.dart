@@ -63,20 +63,80 @@ class AppData extends Model{
     Retrieves active chats which involves the user
     Then, retrieve the information about the chat rooms
    */
-  void onNewChat(Event event){
+  void onNewChat(Event event) async {
+
+
+
     //Chat Room ID
     String chatUID = event.snapshot.key;
     print('onNewChat: $chatUID');
 
+    var snapshot = await _db.reference().child('chats/$chatUID').once();
+
+    List allMembersPublicId = Map<String, bool>.from(snapshot.value['members']).keys.toList();
+    ///Note: Might need to add await to getUserDisplayName
+    List<String> allMembersDisplayName = [];
+
+    for(String id in allMembersPublicId){
+      allMembersDisplayName.add(await getUserDisplayName(id));
+    }
+
+    String lastMessageSentID = snapshot.value['lastMessageSent'];
+    String lastMessageSent = await getChatMessage(chatUID, lastMessageSentID);
+    int lastMessageSentTime = snapshot.value['lastMessageSentTime'];
+
+    _chatRoomsData.add(ChatRoomData(
+      chatUID: chatUID,
+      allMembersPublicId: allMembersPublicId,
+      allMembers: allMembersDisplayName,
+      lastMessageSentUID: lastMessageSentID,
+      lastMessageSent: lastMessageSent,
+      lastMessageSentTime: lastMessageSentTime,
+    ));
+
+    _chatRoomSubs.add(firebaseHandler.newMessageCallback(chatUID, onChatNewMessage));
+    notifyListeners();
+
     //Retrieve info about the chat rooms. e.g. members & last message sent
-    firebaseHandler.getChatRoomModel(chatUID).then((chatRoom){
-      _chatRoomsData.add(chatRoom);
-      _chatRoomSubs.add(firebaseHandler.newMessageCallback(chatUID, onChatNewMessage));
-      notifyListeners();
-    });
+//    firebaseHandler.getChatRoomModel(chatUID).then((chatRoom){
+//      _chatRoomsData.add(chatRoom);
+//      _chatRoomSubs.add(firebaseHandler.newMessageCallback(chatUID, onChatNewMessage));
+//      notifyListeners();
+//    });
 
   }
 
+  Future<String> getChatMessage(String chatUID, String messageUID) async {
+    DataSnapshot snapshot = await _db.reference().child('chatMessages/$chatUID/$messageUID').once();
+    return snapshot.value['message'];
+  }
+
+    Future<String> getUserDisplayName(String publicId)async {
+    DataSnapshot snapshot = await _db.reference().child('usersInfo/$publicId/displayName').once();
+    return snapshot.value;
+  }
+
+//  Future<ChatRoomData> getChatRoomModel(String chatUID) async {
+//    ChatRoomData chatRoom;
+//    DataSnapshot snapshot = await _chatRef.child(chatUID).once();
+//    Map<String, bool> members = Map<String, bool>.from(snapshot.value['members']);
+//
+//    String messageUID = snapshot.value['lastMessageSent'];
+//    String lastMessage = await getChatMessage(chatUID, messageUID);
+//    int timeStamp = snapshot.value['lastMessageSentTime'];
+//    chatRoom = ChatRoomData(
+//        chatUID:  chatUID,
+//        allMembersPublicId:  members.keys.toList(),
+//        lastMessageSentUID: messageUID,
+//        lastMessageSent: lastMessage,
+//        lastMessageSentTime:  timeStamp)
+//    ;
+//
+//    //chatRoom = ChatRoomModel.fromSnapshot(snapshot);
+//    return chatRoom;
+//  }
+
+  ///TODO: FIX THIS
   void onChatNewMessage(Event event) async {
     ChatRoomData chatRoom =  _chatRoomsData.singleWhere((chatRoom){
       return event.snapshot.key == chatRoom.chatUID;

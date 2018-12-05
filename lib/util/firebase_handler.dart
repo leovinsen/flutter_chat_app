@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter_chat_app/model/chat_room_data.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
 
 
@@ -49,25 +48,25 @@ import 'package:flutter_chat_app/model/user_data.dart';
     return senderPublicId.hashCode <= receiverPublicId.hashCode ? '$senderPublicId-$receiverPublicId' : '$receiverPublicId-$senderPublicId';
   }
 
-  Future<ChatRoomData> getChatRoomModel(String chatUID) async {
-    ChatRoomData chatRoom;
-    DataSnapshot snapshot = await _chatRef.child(chatUID).once();
-    Map<String, bool> members = Map<String, bool>.from(snapshot.value['members']);
-
-    String messageUID = snapshot.value['lastMessageSent'];
-    String lastMessage = await getChatMessage(chatUID, messageUID);
-    int timeStamp = snapshot.value['lastMessageSentTime'];
-    chatRoom = ChatRoomData(
-        chatUID:  chatUID,
-        allMembersPublicId:  members.keys.toList(),
-        lastMessageSentUID: messageUID,
-        lastMessageSent: lastMessage,
-        lastMessageSentTime:  timeStamp)
-    ;
-
-    //chatRoom = ChatRoomModel.fromSnapshot(snapshot);
-    return chatRoom;
-  }
+//  Future<ChatRoomData> getChatRoomModel(String chatUID) async {
+//    ChatRoomData chatRoom;
+//    DataSnapshot snapshot = await _chatRef.child(chatUID).once();
+//    Map<String, bool> members = Map<String, bool>.from(snapshot.value['members']);
+//
+//    String messageUID = snapshot.value['lastMessageSent'];
+//    String lastMessage = await getChatMessage(chatUID, messageUID);
+//    int timeStamp = snapshot.value['lastMessageSentTime'];
+//    chatRoom = ChatRoomData(
+//        chatUID:  chatUID,
+//        allMembersPublicId:  members.keys.toList(),
+//        lastMessageSentUID: messageUID,
+//        lastMessageSent: lastMessage,
+//        lastMessageSentTime:  timeStamp)
+//    ;
+//
+//    //chatRoom = ChatRoomModel.fromSnapshot(snapshot);
+//    return chatRoom;
+//  }
 
   Future<String> getChatMessage(String chatUID, String messageUID) async {
     DataSnapshot snapshot = await _chatMessagesRef.child(chatUID).child(messageUID).once();

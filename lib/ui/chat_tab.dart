@@ -6,14 +6,13 @@ import 'package:flutter_chat_app/ui/chat_screen.dart';
 import 'package:intl/intl.dart';
 
 import '../util/dimensions.dart' as dimen;
-import '../util/firebase_handler.dart' as firebaseHandler;
 
 class ChatTab extends StatelessWidget {
-  final String userPublicId;
+//  final String userPublicId;
   final List<ChatRoomData> chatModels;
   final DateFormat dateFormat = new DateFormat('dd/MM/yyyy');
 
-  ChatTab({this.chatModels, this.userPublicId});
+  ChatTab({this.chatModels});
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +35,6 @@ class ChatTab extends StatelessWidget {
                 chatModels[index].lastMessageSentTime));
 
           return GestureDetector(
-
-
             onTap: () => handleClick(context, index),
             child: ListTile(
               dense: false,
@@ -45,11 +42,9 @@ class ChatTab extends StatelessWidget {
                 radius: dimen.listViewCircleAvatarRadius,
                 child: Text('C'),
               ),
-              title: title(index),
+              title: title(context, index),
               subtitle: Text(chatModels[index].lastMessageSent),
-              trailing:
-
-              SizedBox(
+              trailing: SizedBox(
                 height: 40.0,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,18 +58,19 @@ class ChatTab extends StatelessWidget {
         });
   }
 
-  Widget title(int index) {
-    String contactPublicId = getContactPublicId(index);
-    return FutureBuilder(
-        future: firebaseHandler.getUserModelForPublicId(contactPublicId),
-        builder: (_, snapshot){
-      if(snapshot.hasData){
-        var model = snapshot.data as UserData;
-        return Text(model.displayName);
-      } else {
-        return Text(contactPublicId);
-      }
-    });
+  Widget title(BuildContext context, int index) {
+    return Text(getContactName(context, index));
+//    String contactPublicId = getContactName(index);
+//    return FutureBuilder(
+//        future: firebaseHandler.getUserModelForPublicId(contactPublicId),
+//        builder: (_, snapshot){
+//      if(snapshot.hasData){
+//        var model = snapshot.data as UserData;
+//        return Text(model.displayName);
+//      } else {
+//        return Text(contactPublicId);
+//      }
+//    });
   }
 
   TextStyle dateText(){
@@ -83,24 +79,34 @@ class ChatTab extends StatelessWidget {
     );
   }
 
-  String excludeUser(List<String> list){
-    if(list.length > 1)list.remove(userPublicId);
-    return list.first;
+//  String excludeUser(List<String> list){
+//    if(list.length > 1)list.remove(userPublicId);
+//    return list.first;
+//  }
+
+  String getContactName(BuildContext context, int index) {
+    AppData appData = AppData.of(context);
+    List s = List.from(chatModels[index].allMembers)
+      ..remove(appData.userDisplayName);
+    return s.first;
   }
 
-  String getContactPublicId(int index){
-    return excludeUser(chatModels[index].allMembersPublicId);
+  String getContactPublicId(BuildContext context, int index){
+    AppData appData = AppData.of(context);
+    List s = List.from(chatModels[index].allMembers)
+      ..remove(appData.userPublicId);
+    return s.first();
   }
 
   void handleClick(BuildContext context, int index) {
     AppData appData = AppData.of(context);
-    String contactPublicId = getContactPublicId(index);
+    String contactPublicId = getContactPublicId(context, index);
     UserData contactModel = appData.contactsData.singleWhere((contactModel){
       return contactModel.publicId == contactPublicId;
     });
 
     Navigator.push(context, MaterialPageRoute(
-        builder: (context) => ChatScreen(userPublicId: userPublicId, contactModel: contactModel, ))
+        builder: (context) => ChatScreen(userPublicId: appData.userPublicId, contactModel: contactModel, ))
     );
 
   }
