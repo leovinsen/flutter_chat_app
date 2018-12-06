@@ -2,7 +2,6 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
-import 'package:flutter_chat_app/util/firebase_handler.dart' as firebaseHandler;
 
 class ChatScreen extends StatefulWidget {
   final String userPublicId;
@@ -93,22 +92,61 @@ class ChatScreenState extends State<ChatScreen> {
       _isWriting = false;
     });
 
-    //Push message to firebase
-    //Create message on the device
-
     MessageBubble msg = new MessageBubble(
       message: txt,
       sender: MessageSender.user,
     );
 
-    firebaseHandler.insertChatMessage(
-        widget.userPublicId, widget.contactModel.publicId, txt);
+    insertChatMessage(widget.userPublicId, widget.contactModel.publicId, txt);
 
     setState(() {
       _messages.insert(0, msg);
-      //_messages.insert(0,msg2);
     });
   }
+
+  Future<void> insertChatMessage(String senderId, String receiverId, String message) async {
+    FirebaseDatabase db = FirebaseDatabase.instance;
+
+    ///Determine the chat room ID
+    String chatUID = determineChatUID(senderId, receiverId);
+
+    ///insert chat room into both parties' branch at /userChats/
+    db.reference().child('userChats/$senderId').update({
+      chatUID : true
+    });
+    db.reference().child('userChats/$receiverId').update({
+      chatUID : true
+    });
+
+    ///Create new entry in the /chatMessages/chatUID branch
+    DatabaseReference newMessageRef = db.reference().child('chatMessages/$chatUID').push();
+    String newMessageID = newMessageRef.key;
+    int timeStamp = DateTime.now().millisecondsSinceEpoch;
+
+    ///Insert chat message
+    newMessageRef.update({
+      'sentBy' : senderId,
+      'messageTime' : timeStamp ,
+      'message' : message
+    });
+
+    ///Update Chat room's last message sent. Also used to initialize chat room for the first time
+    ///branch /chats/
+    db.reference().child('chats/$chatUID').update({
+      'members' : {
+        senderId : true,
+        receiverId : true
+      },
+      'lastMessageSent' : newMessageID,
+      'lastMessageSentTime' : timeStamp,
+    });
+  }
+
+  ///a simple unique ID generator
+  String determineChatUID(String senderPublicId, String receiverPublicId){
+    return senderPublicId.hashCode <= receiverPublicId.hashCode ? '$senderPublicId-$receiverPublicId' : '$receiverPublicId-$senderPublicId';
+  }
+
 
   @override
   void dispose() {

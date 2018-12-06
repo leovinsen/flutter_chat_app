@@ -68,7 +68,7 @@ class _RootPageState extends State<RootPage> {
       DataSnapshot snapshot = await usersBranch.child(_uniqueAuthId).once();
       _publicId = snapshot.value;
     }
-    return _publicId;
+    return _publicId ?? "";
   }
 
   ///TODO: Create anew auth status for partial registration, to remove checkRegistration status and merge with logIn
@@ -121,51 +121,37 @@ class _RootPageState extends State<RootPage> {
             onSignIn: _signIn,
           );
         case AuthStatus.signedIn:
+
+
           return FutureBuilder(
               future: getUserPublicId(),
               builder: (_, snapshot){
             switch (snapshot.connectionState) {
               case ConnectionState.none:
-                //return Text('Press button to start.');
+              //return Text('Press button to start.');
               case ConnectionState.active:
               case ConnectionState.waiting:
-            //return Text('Awaiting result...');
+              //return Text('Awaiting result...');
               case ConnectionState.done:
                 if (snapshot.hasError)
                   return Text('Error: ${snapshot.error}');
-                String publicId = snapshot.data;
+                if (snapshot.hasData) {
+                  String publicId = snapshot.data;
+                  if (publicId.isEmpty) {
+                    return AdditionalInfoScreen(_uniqueAuthId, () {
+                      setState(() {
 
-                if (publicId == null) {
-                  return AdditionalInfoScreen(_uniqueAuthId, () {
-                    setState(() {
-
-                    });
                       });
+                    });
+                  } else {
+                    AppData.of(context).initUserModel(publicId);
+                    return HomePage(
+                      onSignOut: () => _signOut(),
+                    );
+                  }
                 } else {
-                  AppData.of(context).initUserModel(publicId);
-                  return HomePage(
-                    onSignOut: ()=> _signOut(),
-                  );
+                  return Container();
                 }
-
-//                return publicId == null
-//                    ? AdditionalInfoScreen(_uniqueAuthId, (){
-//                      setState(() {
-//
-//                      });
-//                })
-//                    : HomePage(
-//                  onSignOut: () => _signOut(),
-//                );
-
-
-
-//                    : ScopedModel<AppData>(
-//                  model: AppData(publicId),
-//                  child: HomePage(
-//                    onSignOut: () => _signOut(),
-//                  ),
-//                );
             }
               });
       }

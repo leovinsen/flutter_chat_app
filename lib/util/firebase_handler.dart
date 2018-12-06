@@ -44,9 +44,9 @@ import 'package:flutter_chat_app/model/user_data.dart';
 
 
 
-  String getChatUID(String senderPublicId, String receiverPublicId){
-    return senderPublicId.hashCode <= receiverPublicId.hashCode ? '$senderPublicId-$receiverPublicId' : '$receiverPublicId-$senderPublicId';
-  }
+//  String getChatUID(String senderPublicId, String receiverPublicId){
+//    return senderPublicId.hashCode <= receiverPublicId.hashCode ? '$senderPublicId-$receiverPublicId' : '$receiverPublicId-$senderPublicId';
+//  }
 
 //  Future<ChatRoomData> getChatRoomModel(String chatUID) async {
 //    ChatRoomData chatRoom;
@@ -74,43 +74,41 @@ import 'package:flutter_chat_app/model/user_data.dart';
   }
 
 
-  Future<void> insertChatMessage(String senderId, String receiverId, String message) async {
+//  Future<void> insertChatMessage(String senderId, String receiverId, String message) async {
+//
+//    String chatUID = getChatUID(senderId, receiverId);
+//
+//    _userChatsRef.child(senderId).update({
+//      chatUID : true
+//    });
+//    _userChatsRef.child(receiverId).update({
+//      chatUID : true
+//    });
+//
+//    DatabaseReference newMessageRef = _chatMessagesRef.child(chatUID).push();
+//    String newMessageUID = newMessageRef.key;
+//
+//    int timeStamp = DateTime.now().millisecondsSinceEpoch;
+//
+//    newMessageRef.update({
+//      'sentBy' : senderId,
+//      'messageTime' : timeStamp ,
+//      'message' : message
+//    });
+//
+//    Map members = {
+//      senderId : true,
+//      receiverId : true
+//    };
+//
+//    _chatRef.child(chatUID).update({
+//      'members' : members,
+//      'lastMessageSent' : newMessageUID,
+//      'lastMessageSentTime' : timeStamp,
+//    });
+//  }
 
-    String chatUID = getChatUID(senderId, receiverId);
 
-    _userChatsRef.child(senderId).update({
-      chatUID : true
-    });
-    _userChatsRef.child(receiverId).update({
-      chatUID : true
-    });
-
-    DatabaseReference newMessageRef = _chatMessagesRef.child(chatUID).push();
-    String newMessageUID = newMessageRef.key;
-
-    int timeStamp = DateTime.now().millisecondsSinceEpoch;
-
-    newMessageRef.update({
-      'sentBy' : senderId,
-      'messageTime' : timeStamp ,
-      'message' : message
-    });
-
-    Map members = {
-      senderId : true,
-      receiverId : true
-    };
-
-    _chatRef.child(chatUID).update({
-      'members' : members,
-      'lastMessageSent' : newMessageUID,
-      'lastMessageSentTime' : timeStamp,
-    });
-  }
-
-  Future<void> createUserAssociation(String uniqueAuthId, String publicId){
-    return _usersRef.child(uniqueAuthId).set(publicId);
-  }
 
   Future<bool> contactExists(String publicId, String contactId) async{
     DataSnapshot snapshot = await _usersContactRef.child(publicId).child(contactId).once();
@@ -121,9 +119,7 @@ import 'package:flutter_chat_app/model/user_data.dart';
     return _usersContactRef.child(userPublicId).child(contactPublicId).push().set(contactPublicId);
   }
 
-  Future<void> updateUsersInfo(UserData model){
-    return _usersInfoRef.child(model.publicId).set(model.toJson());
-  }
+
 
 //  Future<String> getUserPublicId(String uniqueAuthId)async {
 //    DataSnapshot snapshot = await _usersRef.child(uniqueAuthId).once();

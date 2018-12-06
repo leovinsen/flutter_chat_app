@@ -1,7 +1,6 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/model/cache_handler.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
-import 'package:flutter_chat_app/util/firebase_handler.dart' as helper;
 
 class AdditionalInfoScreen extends StatefulWidget {
   final String _uniqueAuthId;
@@ -86,11 +85,21 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
     if (form.validate()) {
       form.save();
       try {
-        //Create association between Auth ID with Public ID
-        helper.createUserAssociation(widget._uniqueAuthId, _publicId);
-
+        //default Thumbnail for new users
         String thumbUrl = 'https://firebasestorage.googleapis.com/v0/b/flutter-chat-app-10a1f'
             '.appspot.com/o/profile_default_thumbnail_128px.png?alt=media&token=d8769ef5-281f-4d16-a4cd-f733f85fe45c';
+
+        UserData user = UserData(_publicId, _displayName, thumbUrl);
+
+
+        FirebaseDatabase db = FirebaseDatabase.instance
+          ..reference().child('users/${widget._uniqueAuthId}').set(_publicId)
+          ..reference().child('usersInfo/${user.publicId}').set(user.toJson());
+
+        //Create association between Auth ID with Public ID
+
+
+
 
 
 
@@ -99,17 +108,17 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
         //Create a record in UsersInfo which contains user's personal information
 
 
-        UserData user = UserData(_publicId, _displayName, thumbUrl);
 
-        helper.updateUsersInfo(user).then((val){
-          CacheHandler.storeUserPublicId(_publicId);
-          CacheHandler.storeUserDisplayName(_displayName);
-          CacheHandler.storeUserThumbnailUrl(thumbUrl);
-
-          widget._refresh();
-
-          //Navigator.pop(context, _publicId);
-        });
+//
+//        helper.updateUsersInfo(user).then((val){
+//          CacheHandler.storeUserPublicId(_publicId);
+//          CacheHandler.storeUserDisplayName(_displayName);
+//          CacheHandler.storeUserThumbnailUrl(thumbUrl);
+//
+//          widget._refresh();
+//
+//          //Navigator.pop(context, _publicId);
+//        });
       } catch (e){
         Scaffold.of(context).showSnackBar(
           SnackBar(content: Text('ERROR caught'))
@@ -119,4 +128,12 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
 
     }
   }
+
+//  Future<void> updateUsersInfo(UserData model){
+//    return _usersInfoRef.child(model.publicId).set(model.toJson());
+//  }
+//
+//  Future<void> createUserAssociation(String uniqueAuthId, String publicId){
+//    return _usersRef.child(uniqueAuthId).set(publicId);
+//  }
 }
