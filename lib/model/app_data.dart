@@ -6,44 +6,29 @@ import 'package:flutter_chat_app/model/chat_room_data.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
 import 'package:scoped_model/scoped_model.dart';
 
-import '../util/firebase_handler.dart' as firebaseHandler;
-
-
-class AppData extends Model{
-
+class AppData extends Model {
   final FirebaseDatabase _db = FirebaseDatabase.instance;
-//  UserData _userData;
-  List<UserData> _contactsData = [];
-  List<ChatRoomData> _chatRoomsData = [];
 
-  List<StreamSubscription<Event> > _chatRoomSubs = [];
-  StreamSubscription<Event>  _onNewContactsSub;
-  StreamSubscription<Event>  _onNewChatSub;
+  List<StreamSubscription<Event>> _chatRoomSubs = [];
+  StreamSubscription<Event> _onNewContactsSub;
+  StreamSubscription<Event> _onNewChatSub;
 
   String _userPublicId;
   String _userDisplayName;
   String _userThumbUrl;
 
-  String get userPublicId => _userPublicId; //
-//  String get userPublicId => _userData.publicId;
-//  String get userDisplayName => _userData.displayName;
-//  String get userThumbUrl => _userData.displayName;
-//  UserData get userData => _userData;
+  String get userPublicId => _userPublicId;
+
+  String get userDisplayName => _userDisplayName;
+
+  String get userThumbUrl => _userThumbUrl;
+
+  List<UserData> _contactsData = [];
+  List<ChatRoomData> _chatRoomsData = [];
 
   List<UserData> get contactsData => _contactsData;
 
   List<ChatRoomData> get chatRoomData => _chatRoomsData;
-
-//  AppData(){
-////    initUserModel(publicId);
-//  }
-//
-// AppData(String publicId){
-//    _userPublicId = publicId;
-//    initUserModel(publicId);
-//  }
-
-
 
   initUserModel(String publicId) async {
     _userPublicId = publicId;
@@ -73,11 +58,13 @@ class AppData extends Model{
 
     var snapshot = await _db.reference().child('chats/$chatUID').once();
 
-    List allMembersPublicId = Map<String, bool>.from(snapshot.value['members']).keys.toList();
+    List allMembersPublicId =
+        Map<String, bool>.from(snapshot.value['members']).keys.toList();
+
     ///Note: Might need to add await to getUserDisplayName
     List<String> allMembersDisplayName = [];
 
-    for(String id in allMembersPublicId){
+    for (String id in allMembersPublicId) {
       allMembersDisplayName.add(await getUserDisplayName(id));
     }
 
@@ -94,66 +81,109 @@ class AppData extends Model{
       lastMessageSentTime: lastMessageSentTime,
     ));
 
-    _chatRoomSubs.add(firebaseHandler.newMessageCallback(chatUID, onChatNewMessage));
+    _chatRoomSubs.add(newMessageCallback(chatUID, onChatNewMessage));
     notifyListeners();
   }
 
-
-
   Future<String> getChatMessage(String chatUID, String messageUID) async {
-    DataSnapshot snapshot = await _db.reference().child('chatMessages/$chatUID/$messageUID').once();
+    DataSnapshot snapshot =
+        await _db.reference().child('chatMessages/$chatUID/$messageUID').once();
     return snapshot.value['message'];
   }
 
-    Future<String> getUserDisplayName(String publicId)async {
-    DataSnapshot snapshot = await _db.reference().child('usersInfo/$publicId/displayName').once();
+  Future<String> getUserDisplayName(String publicId) async {
+    DataSnapshot snapshot =
+        await _db.reference().child('usersInfo/$publicId/displayName').once();
     return snapshot.value;
   }
-
 
   ///TODO: FIX THIS
   void onChatNewMessage(Event event) async {
     print(_chatRoomsData);
-    ChatRoomData chatRoom =  _chatRoomsData.singleWhere((chatRoom){
+    ChatRoomData chatRoom = _chatRoomsData.singleWhere((chatRoom) {
       return event.snapshot.key == chatRoom.chatUID;
     });
-    if(chatRoom.lastMessageSentUID != event.snapshot.value['lastMessageSent']){
-      String newMessage = await firebaseHandler.getChatMessage(chatRoom.chatUID, event.snapshot.value['lastMessageSent']);
+    if (chatRoom.lastMessageSentUID !=
+        event.snapshot.value['lastMessageSent']) {
+      String newMessage = await getChatMessage(
+          chatRoom.chatUID, event.snapshot.value['lastMessageSent']);
       chatRoom.lastMessageSent = newMessage;
       notifyListeners();
     } else {
-      print('AppData, OnChatNewMessage ERROR: ' + event.snapshot.value['lastMessageSent'] );
+      print('AppData, OnChatNewMessage ERROR: ' +
+          event.snapshot.value['lastMessageSent']);
     }
   }
 
-  void onNewContact(Event event){
+  void onNewContact(Event event) async {
     Map map = event.snapshot.value;
     String contactId = map.values.first.toString();
     print('OnNewContact: $contactId');
-    firebaseHandler.getUserModelForPublicId(contactId).then((model){
-      _contactsData.add(model);
-      notifyListeners();
-    });
+    DataSnapshot snapshot =
+        await _db.reference().child('usersInfo/$contactId').once();
+    _contactsData.add(UserData.fromSnapshot(snapshot));
+//    firebaseHandler.getUserModelForPublicId(contactId).then((model){
+//      _contactsData.add(model);
+//      notifyListeners();
+//    });
   }
 
-  void initSubscriptions(){
-    _onNewContactsSub = firebaseHandler.contactsCallback(userPublicId, onNewContact);
-    _onNewChatSub = firebaseHandler.chatRoomCallback(userPublicId, onNewChat);
+//  Future<UserData> getUserModelForPublicId(String publicId) async{
+//    UserData model;
+//    DataSnapshot snapshot = await _usersInfoRef.child(publicId).once();
+//    model = UserData.fromSnapshot(snapshot);
+//    return model;
+//
+//  }
+
+  void initSubscriptions() {
+    print("Initiating Subscriptions");
+    _onNewContactsSub = contactsCallback(userPublicId, onNewContact);
+    _onNewChatSub = chatRoomCallback(userPublicId, onNewChat);
   }
 
-  void cancelSubscriptions(){
+  void cancelSubscriptions() {
+    print("Cancelling Subscriptions");
     _onNewContactsSub.cancel();
     _onNewChatSub.cancel();
-    _chatRoomSubs.forEach((sub){
+    _chatRoomSubs.forEach((sub) {
       sub.cancel();
     });
   }
 
-  static AppData of(BuildContext context) =>
-      ScopedModel.of<AppData>(context);
+  StreamSubscription<Event> contactsCallback(
+      String publicId, Function(Event) fn) {
+    return _db
+        .reference()
+        .child('usersContact/$publicId')
+        .orderByKey()
+        .onChildAdded
+        .listen(fn);
+  }
 
-  String get userDisplayName => _userDisplayName;
+  StreamSubscription<Event> chatRoomCallback(
+      String publicId, Function(Event) fn) {
+    return _db
+        .reference()
+        .child('userChats/$publicId')
+        .orderByChild('lastMessageSentTime')
+        .onChildAdded
+        .listen(fn);
+  }
 
-  String get userThumbUrl => _userThumbUrl;
+  StreamSubscription<Event> newMessageCallback(
+      String chatUID, Function(Event) fn) {
+    return _db.reference().child('chats/$chatUID').onValue.listen(fn);
+  }
 
+  cleanup() {
+    _contactsData.clear();
+    _chatRoomsData.clear();
+    _userPublicId = null;
+    _userDisplayName = null;
+    _userThumbUrl = null;
+    notifyListeners();
+  }
+
+  static AppData of(BuildContext context) => ScopedModel.of<AppData>(context);
 }

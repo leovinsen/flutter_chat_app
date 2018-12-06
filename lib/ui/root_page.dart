@@ -90,6 +90,7 @@ class _RootPageState extends State<RootPage> {
   void _signOut() {
     setState(() {
       auth.signOut();
+      AppData.of(context).cleanup();
       CacheHandler.clearUserCreds();
       _authStatus = AuthStatus.notSignedIn;
     });

@@ -1,8 +1,10 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/model/chat_room_data.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
 import 'package:flutter_chat_app/ui/chat_screen.dart';
+import 'package:flutter_chat_app/widgets/circular_image.dart';
 import 'package:intl/intl.dart';
 
 import '../util/dimensions.dart' as dimen;
@@ -37,10 +39,22 @@ class ChatTab extends StatelessWidget {
             onTap: () => handleClick(context, index),
             child: ListTile(
               dense: false,
-              leading: CircleAvatar(
-                radius: dimen.listViewCircleAvatarRadius,
-                child: Text('C'),
-              ),
+              leading: FutureBuilder(
+                future: getContactThumbUrl(context, index),
+                builder: (_, snapshot){
+                  if(snapshot.hasData){
+                    return CircularImage(size: dimen.listViewCircleAvatarRadius, url:  snapshot.data,);
+                  } else {
+                    return Container(
+                      color: Colors.green,
+                      height: dimen.listViewCircleAvatarRadius,
+                      width: dimen.listViewCircleAvatarRadius,
+                    );
+                  }
+                },
+              )
+
+               ,
               title: title(context, index),
               subtitle: Text(chatModels[index].lastMessageSent),
               trailing: SizedBox(
@@ -81,6 +95,13 @@ class ChatTab extends StatelessWidget {
     return s.first;
   }
 
+ Future<String> getContactThumbUrl(BuildContext context, int index) async {
+    FirebaseDatabase db = FirebaseDatabase.instance;
+    DataSnapshot snapshot = await db.reference().child('usersInfo/${getContactPublicId(context,index)}/thumbUrl').once();
+    print(snapshot.value);
+    return snapshot.value;
+  }
+
   void handleClick(BuildContext context, int index) {
     AppData appData = AppData.of(context);
     String contactPublicId = getContactPublicId(context, index);
@@ -94,4 +115,6 @@ class ChatTab extends StatelessWidget {
     );
 
   }
+
+
 }

@@ -92,7 +92,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
         UserData user = UserData(_publicId, _displayName, thumbUrl);
 
 
-        FirebaseDatabase db = FirebaseDatabase.instance
+        FirebaseDatabase.instance
           ..reference().child('users/${widget._uniqueAuthId}').set(_publicId)
           ..reference().child('usersInfo/${user.publicId}').set(user.toJson());
 

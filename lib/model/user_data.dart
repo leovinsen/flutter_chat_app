@@ -26,21 +26,21 @@ class UserData{
 
   String get publicId => _publicId;
 
-  set publicId(String value) {
-    _publicId = value;
-  }
+//  set publicId(String value) {
+//    _publicId = value;
+//  }
 
   String get displayName => _displayName;
 
-  set displayName(String value) {
-    _displayName = value;
-  }
+//  set displayName(String value) {
+//    _displayName = value;
+//  }
 
   String get thumbUrl => _thumbUrl;
-
-  set thumbUrl(String value) {
-    _thumbUrl = value;
-  }
+//
+//  set thumbUrl(String value) {
+//    _thumbUrl = value;
+//  }
 
   @override
   String toString() {

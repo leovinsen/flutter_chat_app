@@ -1,1 +1,1 @@
-double listViewCircleAvatarRadius = 25.0;
+double listViewCircleAvatarRadius = 50.0;

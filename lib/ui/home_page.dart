@@ -1,9 +1,9 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/ui/add_contact_screen.dart';
 import 'package:flutter_chat_app/ui/chat_tab.dart';
 import 'package:flutter_chat_app/ui/contacts_tab.dart';
-import 'package:flutter_chat_app/util/firebase_handler.dart' as firebaseHandler;
 import 'package:scoped_model/scoped_model.dart';
 
 class HomePage extends StatefulWidget {
@@ -46,7 +46,7 @@ class _HomePageNewState extends State<HomePage> {
                   icon: Icon(Icons.refresh),
                   onPressed: () {
                     setState(() {
-                      model.contactsData.forEach((user){
+                      model.contactsData.forEach((user) {
                         print(user.toString());
                       });
                     });
@@ -59,7 +59,7 @@ class _HomePageNewState extends State<HomePage> {
 
                 IconButton(
                   icon: Icon(Icons.exit_to_app),
-                  onPressed: (){
+                  onPressed: () {
                     appData.cancelSubscriptions();
                     widget.onSignOut();
                   },
@@ -96,22 +96,45 @@ class _HomePageNewState extends State<HomePage> {
         context, MaterialPageRoute(builder: (_) => AddContactScreen()));
     if (results != null) {
       var model = AppData.of(context);
+      FirebaseDatabase db = FirebaseDatabase.instance;
 
       String contactPublicId = results.toString().toLowerCase();
 
-      bool exist = await firebaseHandler.contactExists(
-          model.userPublicId, contactPublicId);
+      bool exist = await db.reference().child(
+          'userContacts/${model.userPublicId}/$contactPublicId').once().then((
+          snapshot) {
+        return snapshot.value != null;
+      });
+
+//      bool exist = await firebaseHandler.contactExists(
+//          model.userPublicId, contactPublicId);
 
       if (exist) {
         //TELL USER THE CONTACT EXISTS ALREADY
         print('Contact Exists alrd');
       } else {
         //Push contact to firebase
-        firebaseHandler.addContact(model.userPublicId, contactPublicId);
+        db.reference().child('usersContact/${model.userPublicId}/$contactPublicId}')
+            .push()
+            .set(contactPublicId);
+
+
+//        firebaseHandler.addContact(model.userPublicId, contactPublicId);
         //Retrieve user info of the said contact
         //UserModel contactModel = await helper.getUserModelForPublicId(contactPublicId);
 
       }
     }
   }
+
 }
+
+//  Future<bool> contactExists(String publicId, String contactId) async{
+//    DataSnapshot snapshot = await _usersContactRef.child(publicId).child(contactId).once();
+//    return snapshot.value != null;
+//  }
+//
+////  Future<void> addContact(String userPublicId, String contactPublicId){
+////    return _usersContactRef.child(userPublicId).child(contactPublicId).push().set(contactPublicId);
+////  }
+//}
