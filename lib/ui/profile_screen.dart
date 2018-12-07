@@ -34,22 +34,6 @@ class ProfileScreenState extends State<ProfileScreen> {
     debugPrint('Upload successful: $s');
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.grey.shade100,
-      child: ListView(
-        shrinkWrap: true,
-        children: <Widget>[
-          profilePicture(),
-          publicIdContainer(context),
-          displayNameContainer(context),
-
-        ],
-      )
-    );
-  }
-
   Future<ImageSource> chooseImageSource() async {
     return await showDialog(
         context: context,
@@ -76,17 +60,30 @@ class ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        color: Colors.grey.shade100,
+        child: ListView(
+          shrinkWrap: true,
+          children: <Widget>[
+            profilePicture(),
+            publicIdContainer(context),
+            displayNameContainer(context),
+          ],
+        )
+    );
+  }
+
+
   Widget profilePicture(){
     return Container(
-      margin: const EdgeInsets.all(30.0),
+      margin: const EdgeInsets.all(10.0),
       child: GestureDetector(
         onTap: () async => _pickImage(await chooseImageSource()),
-        child: CircleAvatar(
-          radius: 100.0,
-          child: CircularImage(
-            size: 200.0,
-            url: widget.appData.userThumbUrl,
-          ),
+        child: CircularImage(
+          size: 220.0,
+          url: widget.appData.userThumbUrl,
         ),
       ),
     );

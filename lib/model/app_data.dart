@@ -12,6 +12,7 @@ class AppData extends Model {
   List<StreamSubscription<Event>> _chatRoomSubs = [];
   StreamSubscription<Event> _onNewContactsSub;
   StreamSubscription<Event> _onNewChatSub;
+  StreamSubscription<Event> _onProfileUpdate;
 
   String _userPublicId;
   String _userDisplayName;
@@ -124,10 +125,25 @@ class AppData extends Model {
     _contactsData.add(UserData.fromSnapshot(snapshot));
   }
 
+  void onProfileUpdate(Event event) async {
+    var val = event.snapshot.value;
+    switch(event.snapshot.key){
+      case "thumbUrl":
+        _userThumbUrl = val;
+        break;
+      case "displayName":
+        _userDisplayName = val;
+        break;
+    }
+
+    notifyListeners();
+  }
+
   void initSubscriptions() {
     print("Initiating Subscriptions");
     _onNewContactsSub = contactsCallback(userPublicId, onNewContact);
     _onNewChatSub = chatRoomCallback(userPublicId, onNewChat);
+    _onProfileUpdate = _db.reference().child('usersInfo/$userPublicId').onChildChanged.listen( onProfileUpdate);
   }
 
   void cancelSubscriptions() {
