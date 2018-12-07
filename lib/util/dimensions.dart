@@ -1,1 +1,2 @@
-double listViewCircleAvatarRadius = 50.0;
+double listViewCircleImageSize = 50.0;
+double chatScreenBarCircleImageSize = 40.0;

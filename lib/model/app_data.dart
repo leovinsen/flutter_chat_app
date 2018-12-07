@@ -17,30 +17,18 @@ class AppData extends Model {
   String _userPublicId;
   String _userDisplayName;
   String _userThumbUrl;
-
-  String get userPublicId => _userPublicId;
-
-  String get userDisplayName => _userDisplayName;
-
-  String get userThumbUrl => _userThumbUrl;
-
   List<UserData> _contactsData = [];
   List<ChatRoomData> _chatRoomsData = [];
 
+  String get userPublicId => _userPublicId;
+  String get userDisplayName => _userDisplayName;
+  String get userThumbUrl => _userThumbUrl;
   List<UserData> get contactsData => _contactsData;
-
   List<ChatRoomData> get chatRoomData => _chatRoomsData;
 
   initUserModel(String publicId) async {
     _userPublicId = publicId;
 
-//
-//    ///Retrieve userData from cache
-//    String displayName = CacheHandler.getUserDisplayName();
-//    String thumbUrl = CacheHandler.getUserThumbUrl();
-//
-//    _userData = UserData(publicId, displayName, thumbUrl);
-//    notifyListeners();
     var snapshot = await _db.reference().child('usersInfo/$publicId').once();
     _userDisplayName = snapshot.value['displayName'];
     _userThumbUrl = snapshot.value['thumbUrl'];
@@ -150,6 +138,7 @@ class AppData extends Model {
     print("Cancelling Subscriptions");
     _onNewContactsSub.cancel();
     _onNewChatSub.cancel();
+    _onProfileUpdate.cancel();
     _chatRoomSubs.forEach((sub) {
       sub.cancel();
     });

@@ -28,7 +28,7 @@ class ContactsTab extends StatelessWidget {
             onTap: () => goToChatScreen(context, contact),
             child: ListTile(
               leading: CircularImage(
-                size: dimen.listViewCircleAvatarRadius,
+                size: dimen.listViewCircleImageSize,
                 url: contact.thumbUrl,
               ),
               title: Text(contacts.elementAt(index).displayName),

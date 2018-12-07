@@ -15,6 +15,7 @@ class CacheHandler{
   static final String fieldUserThumbUrl = 'userThumbUrl';
 
 
+
   static Future init() async {
     if(localStorage == null) localStorage = await SharedPreferences.getInstance();
   }

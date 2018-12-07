@@ -23,7 +23,6 @@ class ChatTab extends StatelessWidget {
       return roomA.lastMessageSentTime.compareTo(roomB.lastMessageSentTime);
     });
 
-
     return chatModels.isEmpty
         ? Center(child: Text('No chats'))
         : ListView.separated(
@@ -43,12 +42,11 @@ class ChatTab extends StatelessWidget {
                 future: getContactThumbUrl(context, index),
                 builder: (_, snapshot){
                   if(snapshot.hasData){
-                    return CircularImage(size: dimen.listViewCircleAvatarRadius, url:  snapshot.data,);
+                    return CircularImage(size: dimen.listViewCircleImageSize, url:  snapshot.data, index: index,);
                   } else {
                     return Container(
-                      color: Colors.green,
-                      height: dimen.listViewCircleAvatarRadius,
-                      width: dimen.listViewCircleAvatarRadius,
+                      height: dimen.listViewCircleImageSize,
+                      width: dimen.listViewCircleImageSize,
                     );
                   }
                 },

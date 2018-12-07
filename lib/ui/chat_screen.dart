@@ -2,6 +2,9 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
+import 'package:flutter_chat_app/widgets/circular_image.dart';
+
+import '../util/dimensions.dart' as dimen;
 
 class ChatScreen extends StatefulWidget {
   final String userPublicId;
@@ -29,36 +32,50 @@ class ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 2.0,
-        automaticallyImplyLeading: true, //false to hide back button
-        title: _buildContactProfile()
-      ),
-      body: new Column(children: <Widget>[
-        new Flexible(
-            child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: _buildChatMessages()
-        )),
+      appBar: _appBar(),
+      body: Column(children: <Widget>[
+        _chatMessages(),
         SizedBox(height: 5.0),
-        new Divider(height: 1.0),
-        new Container(
-          child: _buildComposer(),
-          decoration: new BoxDecoration(color: Theme.of(context).cardColor),
-        ),
+        Divider(height: 1.0),
+        _chatBox()
       ]),
     );
   }
 
+  Widget _appBar(){
+    return AppBar(
+        elevation: 2.0,
+        automaticallyImplyLeading: true, //false to hide back button
+        title: _buildContactProfile()
+    );
+  }
+
+  Widget _chatMessages(){
+    return Flexible(
+        child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: _buildChatMessages()
+        ));
+  }
+
+  Widget _chatBox(){
+    return Container(
+      child: _buildComposer(),
+      decoration:  BoxDecoration(color: Theme
+          .of(context)
+          .cardColor),
+    );
+  }
+
   Widget _buildComposer() {
-    return new IconTheme(
-      data: new IconThemeData(color: Theme.of(context).accentColor),
-      child: new Container(
+    return  IconTheme(
+      data:  IconThemeData(color: Theme.of(context).accentColor),
+      child:  Container(
         margin: const EdgeInsets.symmetric(horizontal: 9.0),
-        child: new Row(
+        child:  Row(
           children: <Widget>[
-            new Flexible(
-              child: new TextField(
+            Flexible(
+              child: TextField(
                 textCapitalization: TextCapitalization.sentences,
                 controller: _textController,
                 onChanged: (String txt) {
@@ -67,14 +84,14 @@ class ChatScreenState extends State<ChatScreen> {
                   });
                 },
                 onSubmitted: _submitMsg,
-                decoration: new InputDecoration.collapsed(
+                decoration: InputDecoration.collapsed(
                     hintText: "Enter some text to send a message"),
               ),
             ),
-            new Container(
-                margin: new EdgeInsets.symmetric(horizontal: 3.0),
+            Container(
+                margin: EdgeInsets.symmetric(horizontal: 3.0),
                 child: IconButton(
-                  icon: new Icon(Icons.message),
+                  icon: Icon(Icons.message),
                   onPressed: _isWriting
                       ? () => _submitMsg(_textController.text)
                       : null,
@@ -92,7 +109,7 @@ class ChatScreenState extends State<ChatScreen> {
       _isWriting = false;
     });
 
-    MessageBubble msg = new MessageBubble(
+    MessageBubble msg = MessageBubble(
       message: txt,
       sender: MessageSender.user,
     );
@@ -179,10 +196,7 @@ class ChatScreenState extends State<ChatScreen> {
         contentPadding: EdgeInsets.zero,
         title: Row(
           children: <Widget>[
-            CircleAvatar(
-                radius: 18.0,
-                child: Image.asset(
-                    'assets/profile_default_thumbnail_64px.png')),
+            CircularImage(size: dimen.chatScreenBarCircleImageSize, url: widget.contactModel.thumbUrl, index: 0,),
             SizedBox(
               width: 12.0,
             ),

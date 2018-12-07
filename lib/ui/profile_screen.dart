@@ -4,6 +4,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/model/app_data.dart';
+import 'package:flutter_chat_app/ui/chat_editor.dart';
 import 'package:flutter_chat_app/widgets/circular_image.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -65,7 +66,7 @@ class ProfileScreenState extends State<ProfileScreen> {
     return Container(
         color: Colors.grey.shade100,
         child: ListView(
-          shrinkWrap: true,
+          shrinkWrap: false,
           children: <Widget>[
             profilePicture(),
             publicIdContainer(context),
@@ -78,11 +79,11 @@ class ProfileScreenState extends State<ProfileScreen> {
 
   Widget profilePicture(){
     return Container(
-      margin: const EdgeInsets.all(10.0),
+      margin: const EdgeInsets.all(30.0),
       child: GestureDetector(
         onTap: () async => _pickImage(await chooseImageSource()),
         child: CircularImage(
-          size: 220.0,
+          size: 300.0,
           url: widget.appData.userThumbUrl,
         ),
       ),
@@ -106,7 +107,7 @@ class ProfileScreenState extends State<ProfileScreen> {
         child: ListTile(
           title: Text('Display Name'),
           subtitle: Text(widget.appData.userDisplayName, style: blueSubtitle(context),),
-          trailing: IconButton(icon: Icon(Icons.edit), onPressed: null),
+          trailing: IconButton(icon: Icon(Icons.edit), onPressed: () =>  _openNameEditor()),
         ),
       decoration: whiteBoxDecoration(),
     );
@@ -125,6 +126,12 @@ class ProfileScreenState extends State<ProfileScreen> {
     return TextStyle(
       fontSize: 12.0,
       color: Theme.of(context).primaryColorDark
+    );
+  }
+
+  void _openNameEditor() {
+    Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => ChatEditor())
     );
   }
 }
