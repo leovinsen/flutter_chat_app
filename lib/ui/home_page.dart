@@ -4,6 +4,7 @@ import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/ui/add_contact_screen.dart';
 import 'package:flutter_chat_app/ui/chat_tab.dart';
 import 'package:flutter_chat_app/ui/contacts_tab.dart';
+import 'package:flutter_chat_app/ui/profile_screen.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 class HomePage extends StatefulWidget {
@@ -82,7 +83,7 @@ class _HomePageNewState extends State<HomePage> {
                 ),
                 ContactsTab(contacts: model.contactsData,
                     userPublicId: model.userPublicId),
-                //ProfileScreen(user: model.userData,)
+                ProfileScreen(appData: model)
               ],
             ),
           ),
@@ -128,13 +129,3 @@ class _HomePageNewState extends State<HomePage> {
   }
 
 }
-
-//  Future<bool> contactExists(String publicId, String contactId) async{
-//    DataSnapshot snapshot = await _usersContactRef.child(publicId).child(contactId).once();
-//    return snapshot.value != null;
-//  }
-//
-////  Future<void> addContact(String userPublicId, String contactPublicId){
-////    return _usersContactRef.child(userPublicId).child(contactPublicId).push().set(contactPublicId);
-////  }
-//}

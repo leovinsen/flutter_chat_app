@@ -122,19 +122,7 @@ class AppData extends Model {
     DataSnapshot snapshot =
         await _db.reference().child('usersInfo/$contactId').once();
     _contactsData.add(UserData.fromSnapshot(snapshot));
-//    firebaseHandler.getUserModelForPublicId(contactId).then((model){
-//      _contactsData.add(model);
-//      notifyListeners();
-//    });
   }
-
-//  Future<UserData> getUserModelForPublicId(String publicId) async{
-//    UserData model;
-//    DataSnapshot snapshot = await _usersInfoRef.child(publicId).once();
-//    model = UserData.fromSnapshot(snapshot);
-//    return model;
-//
-//  }
 
   void initSubscriptions() {
     print("Initiating Subscriptions");
