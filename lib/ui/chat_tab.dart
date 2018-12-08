@@ -25,24 +25,30 @@ class ChatTab extends StatelessWidget {
 
     return chatModels.isEmpty
         ? Center(child: Text('No chats'))
-        : ListView.separated(
+        : _buildChatRooms(context);
+  }
+
+  Widget _buildChatRooms(BuildContext context){
+    return ListView.separated(
 
         itemCount: chatModels.length,
         separatorBuilder: (_, int index) => Divider(),
         itemBuilder: (_, int index){
 
           String sentTime = dateFormat.format(DateTime.fromMillisecondsSinceEpoch(
-                chatModels[index].lastMessageSentTime));
+              chatModels[index].lastMessageSentTime));
 
           return GestureDetector(
             onTap: () => handleClick(context, index),
             child: ListTile(
               dense: false,
               leading: FutureBuilder(
+                initialData: "",
                 future: getContactThumbUrl(context, index),
                 builder: (_, snapshot){
                   if(snapshot.hasData){
-                    return CircularProfileImage(size: dimen.listViewCircleImageSize, url:  snapshot.data, publicId: getContactPublicId(context,index),);
+                    String url = snapshot.data;
+                    return CircularNetworkProfileImage(size: dimen.listViewCircleImageSize, url:  url, publicId: getContactPublicId(context,index),);
                   } else {
                     return Container(
                       height: dimen.listViewCircleImageSize,
@@ -50,9 +56,9 @@ class ChatTab extends StatelessWidget {
                     );
                   }
                 },
-              )
+              ),
 
-               ,
+
               title: title(context, index),
               subtitle: Text(chatModels[index].lastMessageSent),
               trailing: SizedBox(
@@ -70,7 +76,16 @@ class ChatTab extends StatelessWidget {
   }
 
   Widget title(BuildContext context, int index) {
-    return Text(getContactName(context, index));
+    return FutureBuilder(
+      ///TODO: put cached data into initial dat
+      initialData: "",
+      future: getContactName(context, index),
+      builder: (_, snapshot){
+        if(snapshot.hasData){
+          return Text(snapshot.data);
+        }
+      },
+    );
   }
 
   TextStyle dateText(){
@@ -79,11 +94,16 @@ class ChatTab extends StatelessWidget {
     );
   }
 
-  String getContactName(BuildContext context, int index) {
-    AppData appData = AppData.of(context);
-    List s = List.from(chatModels[index].allMembers)
-      ..remove(appData.userDisplayName);
-    return s.first;
+  ////BUG
+  ///RETRIEVE DATA FROM FIREBASE!!!
+  Future<String> getContactName(BuildContext context, int index) async {
+    String publicId = getContactPublicId(context, index);
+
+    DataSnapshot snapshot = await FirebaseDatabase.instance.reference().child('usersInfo/$publicId').once();
+    return snapshot.value['displayName'];
+//    AppData appData = AppData.of(context);
+//    List s = List.from(chatModels[index].allMembers)
+//      ..remove(appData.userDisplayName);
   }
 
   String getContactPublicId(BuildContext context, int index){

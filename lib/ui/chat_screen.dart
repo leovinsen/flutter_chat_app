@@ -196,7 +196,7 @@ class ChatScreenState extends State<ChatScreen> {
         contentPadding: EdgeInsets.zero,
         title: Row(
           children: <Widget>[
-            CircularProfileImage(size: dimen.chatScreenBarCircleImageSize, url: widget.contactModel.thumbUrl, publicId: widget.contactModel.publicId,),
+            CircularNetworkProfileImage(size: dimen.chatScreenBarCircleImageSize, url: widget.contactModel.thumbUrl, publicId: widget.contactModel.publicId,),
             SizedBox(
               width: 12.0,
             ),

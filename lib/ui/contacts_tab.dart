@@ -27,7 +27,7 @@ class ContactsTab extends StatelessWidget {
           return GestureDetector(
             onTap: () => goToChatScreen(context, contact),
             child: ListTile(
-              leading: CircularProfileImage(
+              leading: CircularNetworkProfileImage(
                 size: dimen.listViewCircleImageSize,
                 url: contact.thumbUrl,
                 publicId: contact.publicId,

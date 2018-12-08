@@ -87,7 +87,7 @@ class ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.all(30.0),
       child: Stack(
           children: <Widget>[
-            CircularProfileImage(
+            CircularNetworkProfileImage(
               size: 300.0,
               url: widget.appData.userThumbUrl,
               publicId: widget.appData.userPublicId,

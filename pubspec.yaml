@@ -40,6 +40,8 @@ flutter:
   assets:
     - assets/logo.png
     - assets/profile_default_thumbnail_64px.png
+    - assets/default_profile_picture_128px.jpg
+    - assets/default_profile_picture_744px.jpg
 
   fonts:
     - family: Nunito
