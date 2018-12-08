@@ -94,8 +94,6 @@ class ProfileScreenState extends State<ProfileScreen> {
               child: RoundedCameraButton(() async =>
                   _pickImage(await chooseImageSource())),
             )
-
-
         ]
       ),
     );
@@ -118,7 +116,7 @@ class ProfileScreenState extends State<ProfileScreen> {
         child: ListTile(
           title: Text('Display Name'),
           subtitle: Text(widget.appData.userDisplayName, style: blueSubtitle(context),),
-          trailing: IconButton(icon: Icon(Icons.edit), onPressed: () =>  _openNameEditor()),
+          trailing: IconButton(icon: Icon(Icons.edit), color: Theme.of(context).primaryColor, onPressed: () =>  _openNameEditor()),
         ),
       decoration: whiteBoxDecoration(),
     );
@@ -140,9 +138,15 @@ class ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _openNameEditor() {
+  void _openNameEditor() async {
+
+    final String results = await
     Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => ChatEditor())
+        MaterialPageRoute(builder: (_) => ChatEditor(widget.appData.userDisplayName))
     );
+
+    if(results != null && results.isNotEmpty){
+      print("NEW NAME: $results");
+    }
   }
 }

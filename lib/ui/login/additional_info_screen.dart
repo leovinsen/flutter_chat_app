@@ -39,6 +39,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
       keyboardType: TextInputType.text,
       textCapitalization: TextCapitalization.none,
       autofocus: true,
+      textInputAction: TextInputAction.next,
       validator: (val) => val.isEmpty ? 'Enter a unique ID.' : null,
       onSaved: (val) => _publicId = val,
       decoration: InputDecoration(
@@ -53,7 +54,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
     return TextFormField(
       keyboardType: TextInputType.text,
       textCapitalization: TextCapitalization.words,
-      autofocus: true,
+      textInputAction: TextInputAction.done,
       validator: (val) => val.isEmpty ? 'Please enter your name.' : null,
       onSaved: (val) => _displayName = val,
       decoration: InputDecoration(

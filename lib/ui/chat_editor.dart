@@ -1,30 +1,59 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/widgets/custom_button.dart';
 
 class ChatEditor extends StatelessWidget {
+  final String initialName;
+  ChatEditor(this.initialName);
+
   final TextEditingController _controller = TextEditingController();
   @override
   Widget build(BuildContext context) {
+    _controller.text = initialName;
     return Scaffold(
-      appBar: AppBar(),
-      body: ListView(
-        padding: const EdgeInsets.all(10.0),
+      appBar: AppBar(
+        title: Text('Enter your name'),
+      ),
+      body: Column(
+       // reverse: true,
+        //padding: const EdgeInsets.all(0.0),
         children: <Widget>[
-          Flexible(
-            child: TextField(
-              controller: _controller,
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: TextField(
+                textCapitalization: TextCapitalization.words,
+                style: TextStyle(fontSize: 18.0, color: Colors.black),
+                maxLength: 20,
+                decoration: InputDecoration(
+                  isDense: true,
+                  border: OutlineInputBorder(
+                  )
+                ),
+                autofocus: true,
+                controller: _controller,
+              ),
             ),
           ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Row(
-              children: <Widget>[
-                Flexible(child: Text('A')),
-                Flexible(child: Text('B'))
-              ],
-            ),
-          )
+
+          Divider(height: 2.0, color: Colors.black,),
+          _cancelOkButtons(context),
+
         ],
+
       )
+    );
+  }
+
+  Widget _cancelOkButtons(BuildContext context){
+    return Row(
+      children: <Widget>[
+        Expanded(
+            child: CustomButton('CANCEL', () => Navigator.of(context).pop())
+        ),
+        VerticalDivider(width: 22.0,color: Colors.red, indent: 20.0,),
+        Expanded(child: CustomButton(
+            'OK', () => Navigator.of(context).pop(_controller.text)),)
+      ],
     );
   }
 }
