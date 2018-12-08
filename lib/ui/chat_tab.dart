@@ -4,7 +4,7 @@ import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/model/chat_room_data.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
 import 'package:flutter_chat_app/ui/chat_screen.dart';
-import 'package:flutter_chat_app/widgets/circular_image.dart';
+import 'package:flutter_chat_app/widgets/circular_profile_image.dart';
 import 'package:intl/intl.dart';
 
 import '../util/dimensions.dart' as dimen;
@@ -42,7 +42,7 @@ class ChatTab extends StatelessWidget {
                 future: getContactThumbUrl(context, index),
                 builder: (_, snapshot){
                   if(snapshot.hasData){
-                    return CircularImage(size: dimen.listViewCircleImageSize, url:  snapshot.data, index: index,);
+                    return CircularProfileImage(size: dimen.listViewCircleImageSize, url:  snapshot.data, publicId: getContactPublicId(context,index),);
                   } else {
                     return Container(
                       height: dimen.listViewCircleImageSize,

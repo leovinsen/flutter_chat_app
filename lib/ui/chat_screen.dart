@@ -2,7 +2,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
-import 'package:flutter_chat_app/widgets/circular_image.dart';
+import 'package:flutter_chat_app/widgets/circular_profile_image.dart';
 
 import '../util/dimensions.dart' as dimen;
 
@@ -196,7 +196,7 @@ class ChatScreenState extends State<ChatScreen> {
         contentPadding: EdgeInsets.zero,
         title: Row(
           children: <Widget>[
-            CircularImage(size: dimen.chatScreenBarCircleImageSize, url: widget.contactModel.thumbUrl, index: 0,),
+            CircularProfileImage(size: dimen.chatScreenBarCircleImageSize, url: widget.contactModel.thumbUrl, publicId: widget.contactModel.publicId,),
             SizedBox(
               width: 12.0,
             ),

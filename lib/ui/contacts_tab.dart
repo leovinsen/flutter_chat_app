@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
 import 'package:flutter_chat_app/ui/chat_screen.dart';
-import 'package:flutter_chat_app/widgets/circular_image.dart';
+import 'package:flutter_chat_app/widgets/circular_profile_image.dart';
 
 import '../util/dimensions.dart' as dimen;
 class ContactsTab extends StatelessWidget {
@@ -27,9 +27,10 @@ class ContactsTab extends StatelessWidget {
           return GestureDetector(
             onTap: () => goToChatScreen(context, contact),
             child: ListTile(
-              leading: CircularImage(
+              leading: CircularProfileImage(
                 size: dimen.listViewCircleImageSize,
                 url: contact.thumbUrl,
+                publicId: contact.publicId,
               ),
               title: Text(contacts.elementAt(index).displayName),
 

@@ -1,29 +1,32 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-class CircularImage extends StatelessWidget {
+class CircularProfileImage extends StatelessWidget {
   final double size;
   final String url;
-  final int index;
+  ///publicId is used to ensure every hero has a unique tag
+  final String publicId;
 
-  const CircularImage({this.size, this.url, this.index})
+  const CircularProfileImage({this.size, this.url, this.publicId})
       : assert(size != null),
-        assert(url != null);
+        assert(publicId != null);
 
   @override
   Widget build(BuildContext context) {
+    final tag = url + publicId;
+
     return Hero(
-      tag: url + index.toString(),
+      tag: tag,
       child: GestureDetector(
         onTap: (){
           Navigator.of(context).push(MaterialPageRoute<void>(
             builder: (_) => Scaffold(
               body: Hero(
-                tag: url,
+                tag: tag,
                 child: GestureDetector(
                   onTap: () => Navigator.of(context).pop(),
                   child: Container(
-                    child: CachedNetworkImage(imageUrl: url,fit: BoxFit.contain,),
+                    child: CachedNetworkImage(imageUrl: url,fit: BoxFit.contain, width: double.infinity, height: double.infinity,),
                   ),
                 ),
               ),

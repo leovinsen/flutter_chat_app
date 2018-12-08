@@ -5,7 +5,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/ui/chat_editor.dart';
-import 'package:flutter_chat_app/widgets/circular_image.dart';
+import 'package:flutter_chat_app/widgets/circular_profile_image.dart';
+import 'package:flutter_chat_app/widgets/rounded_camera_button.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -78,14 +79,24 @@ class ProfileScreenState extends State<ProfileScreen> {
 
 
   Widget profilePicture(){
-    return Container(
-      margin: const EdgeInsets.all(30.0),
-      child: GestureDetector(
-        onTap: () async => _pickImage(await chooseImageSource()),
-        child: CircularImage(
-          size: 300.0,
-          url: widget.appData.userThumbUrl,
-        ),
+    return Padding(
+      padding: const EdgeInsets.all(30.0),
+      child: Stack(
+          children: <Widget>[
+            CircularProfileImage(
+              size: 300.0,
+              url: widget.appData.userThumbUrl,
+              publicId: widget.appData.userPublicId,
+            ),
+            Positioned(
+              right: 20.0,
+              bottom: 20.0,
+              child: RoundedCameraButton(() async =>
+                  _pickImage(await chooseImageSource())),
+            )
+
+
+        ]
       ),
     );
   }
