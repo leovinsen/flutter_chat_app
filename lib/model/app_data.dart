@@ -114,7 +114,9 @@ class AppData extends Model {
   }
 
   void onProfileUpdate(Event event) async {
+
     var val = event.snapshot.value;
+    print('onProfileUpdate: $val');
     switch(event.snapshot.key){
       case "thumbUrl":
         _userThumbUrl = val;

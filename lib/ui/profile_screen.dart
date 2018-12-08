@@ -21,9 +21,12 @@ class ProfileScreen extends StatefulWidget {
 
 class ProfileScreenState extends State<ProfileScreen> {
 
+  //bool _uploading = false;
+
   Future _pickImage(ImageSource imgSource) async {
     if(imgSource == null) return;
 
+    //createDialog(context);
     String publicId = widget.appData.userPublicId;
     File imageFile = await ImagePicker.pickImage(source: imgSource, maxWidth: 400, maxHeight: 400);
     StorageReference ref =
@@ -33,6 +36,7 @@ class ProfileScreenState extends State<ProfileScreen> {
     FirebaseDatabase db = FirebaseDatabase.instance;
     String s = await (await uploadTask.onComplete).ref.getDownloadURL();
     db.reference().child('usersInfo/$publicId').update({'thumbUrl' : s });
+    Scaffold.of(context).showSnackBar(SnackBar(content: Text('Upload successful'), duration: Duration(seconds: 2),));
     debugPrint('Upload successful: $s');
   }
 
@@ -139,14 +143,31 @@ class ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _openNameEditor() async {
+    String originalName = widget.appData.userDisplayName;
 
     final String results = await
     Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => ChatEditor(widget.appData.userDisplayName))
-    );
+        MaterialPageRoute(builder: (_) => ChatEditor(originalName))
+    )..trim();
 
-    if(results != null && results.isNotEmpty){
-      print("NEW NAME: $results");
+    if(results != null && results.isNotEmpty && results != originalName){
+      FirebaseDatabase db = FirebaseDatabase.instance;
+      db.reference().child('usersInfo/${widget.appData.userPublicId}').update({'displayName' : results });
     }
   }
+
+//  void createDialog(BuildContext context) {
+//      showDialog(
+//        barrierDismissible: false,
+//          context: context,
+//          builder: (_){
+//            return AlertDialog(
+//              content: Row(children: <Widget>[
+//                Text('Uploading...'),
+//                CircularProgressIndicator()
+//              ]) ,
+//            );
+//          }
+//      );
+//    }
 }

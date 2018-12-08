@@ -11,18 +11,17 @@ class ChatEditor extends StatelessWidget {
     _controller.text = initialName;
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text('Enter your name'),
       ),
       body: Column(
-       // reverse: true,
-        //padding: const EdgeInsets.all(0.0),
         children: <Widget>[
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(10.0),
               child: TextField(
                 textCapitalization: TextCapitalization.words,
-                style: TextStyle(fontSize: 18.0, color: Colors.black),
+                style: TextStyle(fontSize: 17.0, color: Colors.black),
                 maxLength: 20,
                 decoration: InputDecoration(
                   isDense: true,
