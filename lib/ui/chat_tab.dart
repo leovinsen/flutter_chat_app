@@ -18,7 +18,6 @@ class ChatTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-
     chatModels.sort((roomA, roomB){
       return roomA.lastMessageSentTime.compareTo(roomB.lastMessageSentTime);
     });

@@ -24,9 +24,7 @@ class ChatScreenState extends State<ChatScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    //_chatUID = firebaseHandler.getChatUID(widget.userPublicId, widget.contactModel.publicId);
   }
 
   @override
@@ -50,12 +48,47 @@ class ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  Widget _buildContactProfile() {
+    return Transform.translate(
+      offset: Offset(-20.0, 0.0),
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        title: Row(
+          children: <Widget>[
+            CircularNetworkProfileImage(size: dimen.chatScreenBarCircleImageSize, url: widget.contactModel.thumbUrl, publicId: widget.contactModel.publicId,),
+            SizedBox(width: 12.0),
+            Text(widget.contactModel.displayName)
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _chatMessages(){
     return Flexible(
         child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: _buildChatMessages()
         ));
+  }
+
+  Widget _buildChatMessages(){
+    return FirebaseAnimatedList(
+      reverse: false,
+      sort:  (a, b) => (a.value['messageTime'] as int).compareTo(b.value['messageTime']),
+      query: FirebaseDatabase.instance
+          .reference()
+          .child('chatMessages/${widget.chatUID}').orderByChild('messageTime'),
+      itemBuilder: (_, DataSnapshot snapshot, Animation<double> animation,
+          int index) {
+        return MessageBubble(
+          message: snapshot.value['message'],
+          sender: snapshot.value['sentBy'] == widget.userPublicId
+              ? MessageSender.user
+              : MessageSender.contact,
+        );
+      },
+    );
   }
 
   Widget _chatBox(){
@@ -170,42 +203,9 @@ class ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  Widget _buildChatMessages(){
-    return FirebaseAnimatedList(
-      reverse: false,
-      sort:  (a, b) => (a.value['messageTime'] as int).compareTo(b.value['messageTime']),
-      query: FirebaseDatabase.instance
-          .reference()
-          .child('chatMessages/${widget.chatUID}').orderByChild('messageTime'),
-      itemBuilder: (_, DataSnapshot snapshot, Animation<double> animation,
-          int index) {
-        return MessageBubble(
-          message: snapshot.value['message'],
-          sender: snapshot.value['sentBy'] == widget.userPublicId
-              ? MessageSender.user
-              : MessageSender.contact,
-        );
-      },
-    );
-  }
+
   
-  Widget _buildContactProfile() {
-    return Transform.translate(
-      offset: Offset(-20.0, 0.0),
-      child: ListTile(
-        contentPadding: EdgeInsets.zero,
-        title: Row(
-          children: <Widget>[
-            CircularNetworkProfileImage(size: dimen.chatScreenBarCircleImageSize, url: widget.contactModel.thumbUrl, publicId: widget.contactModel.publicId,),
-            SizedBox(
-              width: 12.0,
-            ),
-            Text(widget.contactModel.displayName)
-          ],
-        ),
-      ),
-    );
-  }
+
 }
 
 enum MessageSender { user, contact }

@@ -1,4 +1,3 @@
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/ui/add_contact_screen.dart';
@@ -94,38 +93,29 @@ class _HomePageNewState extends State<HomePage> {
 
   void addContact() async {
     final results = await Navigator.push(
-        context, MaterialPageRoute(builder: (_) => AddContactScreen()));
-    if (results != null) {
-      var model = AppData.of(context);
-      FirebaseDatabase db = FirebaseDatabase.instance;
-
-      String contactPublicId = results.toString().toLowerCase();
-
-      bool exist = await db.reference().child(
-          'userContacts/${model.userPublicId}/$contactPublicId').once().then((
-          snapshot) {
-        return snapshot.value != null;
-      });
-
-//      bool exist = await firebaseHandler.contactExists(
-//          model.userPublicId, contactPublicId);
-
-      if (exist) {
-        //TELL USER THE CONTACT EXISTS ALREADY
-        print('Contact Exists alrd');
-      } else {
-        //Push contact to firebase
-        db.reference().child('usersContact/${model.userPublicId}/$contactPublicId}')
-            .push()
-            .set(contactPublicId);
-
-
-//        firebaseHandler.addContact(model.userPublicId, contactPublicId);
-        //Retrieve user info of the said contact
-        //UserModel contactModel = await helper.getUserModelForPublicId(contactPublicId);
-
-      }
-    }
+        context, MaterialPageRoute(builder: (_) => AddContactScreen(appData.userPublicId)));
+//    if (results != null) {
+//      var model = AppData.of(context);
+//      FirebaseDatabase db = FirebaseDatabase.instance;
+//
+//      String contactPublicId = results.toString().toLowerCase();
+//
+//      bool exist = await db.reference().child(
+//          'userContacts/${model.userPublicId}/$contactPublicId').once().then((
+//          snapshot) {
+//        return snapshot.value != null;
+//      });
+//
+//      if (exist) {
+//        //TELL USER THE CONTACT EXISTS ALREADY
+//        print('Contact Exists alrd');
+//      } else {
+//        //Push contact to firebase
+//        db.reference().child('usersContact/${model.userPublicId}/$contactPublicId}')
+//            .push()
+//            .set(contactPublicId);
+//      }
+//    }
   }
 
 }
