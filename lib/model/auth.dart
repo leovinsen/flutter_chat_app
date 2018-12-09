@@ -1,20 +1,33 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_chat_app/model/cache_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-abstract class BaseAuth {
+//abstract class BaseAuth {
+//
+//  static Future<String> currentUser();
+//  static Future<ResultMessage> signIn(String email, String password);
+//  static Future<String> createUser(String email, String password);
+//  static Future<void> signOut();
+//  static Future<void> storeUserId(String userId);
+//}
 
-  Future<String> currentUser();
-  Future<ResultMessage> signIn(String email, String password);
-  Future<String> createUser(String email, String password);
-  Future<void> signOut();
-  Future<void> storeUserId(String userId);
+
+enum AuthStatus {
+  notSignedIn,
+  incompleteRegistration,
+  signedIn,
 }
 
-class Auth implements BaseAuth {
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+class Auth {
+  static final Auth instance = Auth._internal();
+  FirebaseAuth _firebaseAuth;
+
+  Auth._internal(){
+    _firebaseAuth = FirebaseAuth.instance;
+  }
 
   Future<ResultMessage> signIn(String email, String password) async {
     var result;
@@ -57,7 +70,17 @@ class Auth implements BaseAuth {
     SharedPreferences sp = await SharedPreferences.getInstance();
     sp.setString('userId', userId);
   }
-  
+
+  Future<AuthStatus> authenticate() async {
+    String uniqueAuthId = await Auth.instance.currentUser();
+    if(uniqueAuthId != null){
+      var snapshot = await FirebaseDatabase.instance.reference().child('users/$uniqueAuthId').once();
+      String publicId = snapshot.value;
+      return publicId == null ? AuthStatus.incompleteRegistration : AuthStatus.signedIn;
+    } else {
+      return AuthStatus.notSignedIn;
+    }
+  }
   
 
 }

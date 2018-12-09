@@ -1,6 +1,3 @@
-import 'dart:async';
-
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/model/auth.dart';
@@ -18,20 +15,15 @@ class RootPage extends StatefulWidget {
   _RootPageState createState() => _RootPageState();
 }
 
-enum AuthStatus {
-  notSignedIn,
-  incompleteRegistration,
-  signedIn,
-}
 
 class _RootPageState extends State<RootPage> {
   final String tag = 'root-page';
-  final BaseAuth auth = Auth();
+//  final BaseAuth auth = Auth();
 
   String _uniqueAuthId;
   String _publicId;
   AuthStatus _authStatus;
-  bool loading = true;
+  bool isAuthenticating = true;
 
   @override
   initState() {
@@ -40,56 +32,63 @@ class _RootPageState extends State<RootPage> {
   }
 
   init() async {
-    await CacheHandler.init();
-
-    _uniqueAuthId = await getUserAuthToken();
-    if(_uniqueAuthId != null) {
-      _publicId = await getUserPublicId();
-      _authStatus = _publicId == null ? AuthStatus.incompleteRegistration : AuthStatus.signedIn;
-    } else {
-      _authStatus =AuthStatus.notSignedIn;
-    }
-
-    setState(() {
-      loading = false;
+    Auth.instance.authenticate().then((authStatus){
+      setState(() {
+        _authStatus = authStatus;
+        isAuthenticating = false;
+      });
     });
+//    await CacheHandler.init();
+//
+//    _uniqueAuthId = await getUserAuthToken();
+//    if(_uniqueAuthId != null) {
+//      _publicId = await getUserPublicId();
+//      _authStatus = _publicId == null ? AuthStatus.incompleteRegistration : AuthStatus.signedIn;
+//    } else {
+//      _authStatus =AuthStatus.notSignedIn;
+//    }
+//
+//    setState(() {
+//      loading = false;
+//    });
   }
 
-  Future<String> getUserAuthToken() async {
-    //Get user Auth ID from local storage
-     String uniqueAuthId = CacheHandler.getUserFirebaseAuthId();
-
-    //If not found, try online
-    if (uniqueAuthId == null) uniqueAuthId = await auth.currentUser();
-
-    return uniqueAuthId;
-  }
-
-  ///TODO: Change to Future<String>
-  Future<String> getUserPublicId() async {
-    String _publicId = CacheHandler.getUserPublicId();
-
-    if (_publicId == null){
-      var db = FirebaseDatabase.instance;
-      var usersBranch = db.reference().child('users');
-      DataSnapshot snapshot = await usersBranch.child(_uniqueAuthId).once();
-      _publicId = snapshot.value;
-    }
-    return _publicId ?? "";
-  }
+//  Future<String> getUserAuthToken() async {
+//    //Get user Auth ID from local storage
+//     String uniqueAuthId = CacheHandler.getUserFirebaseAuthId();
+//
+//    //If not found, try online
+//    if (uniqueAuthId == null) uniqueAuthId = await auth.currentUser();
+//
+//    return uniqueAuthId;
+//  }
+//
+//  ///TODO: Change to Future<String>
+//  Future<String> getUserPublicId() async {
+//    String _publicId = CacheHandler.getUserPublicId();
+//
+//    if (_publicId == null){
+//      var db = FirebaseDatabase.instance;
+//      var usersBranch = db.reference().child('users');
+//      DataSnapshot snapshot = await usersBranch.child(_uniqueAuthId).once();
+//      _publicId = snapshot.value;
+//    }
+//    return _publicId ?? "";
+//  }
 
   ///TODO: Create anew auth status for partial registration, to remove checkRegistration status and merge with logIn
   void _signIn(String userAuthId) async {
-    _uniqueAuthId = userAuthId;
-    _publicId = await getUserPublicId();
-   setState(() {
-     _authStatus = _publicId == null ? AuthStatus.incompleteRegistration : AuthStatus.signedIn;
-   });
+    Auth.instance.authenticate();
+//    _uniqueAuthId = userAuthId;
+//    _publicId = await getUserPublicId();
+//   setState(() {
+//     _authStatus = _publicId == null ? AuthStatus.incompleteRegistration : AuthStatus.signedIn;
+//   });
   }
 
   void _signOut() {
     setState(() {
-      auth.signOut();
+      Auth.instance.signOut();
       AppData.of(context).cleanup();
       CacheHandler.clearUserCreds();
       _authStatus = AuthStatus.notSignedIn;
@@ -99,13 +98,13 @@ class _RootPageState extends State<RootPage> {
   @override
   Widget build(BuildContext context) {
     print('calling build ROOT_PAGE');
-    if (loading) {
+    if (isAuthenticating) {
       return _loadingScreen();
     } else {
       switch (_authStatus) {
         case AuthStatus.notSignedIn:
           return LoginPage(
-            auth: auth,
+            //auth: auth,
             onSignIn: _signIn,
           );
 

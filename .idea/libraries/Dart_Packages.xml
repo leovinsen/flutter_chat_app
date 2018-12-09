@@ -198,6 +198,13 @@
             </list>
           </value>
         </entry>
+        <entry key="sqflite">
+          <value>
+            <list>
+              <option value="$PROJECT_DIR$/../../../Flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.13.0/lib" />
+            </list>
+          </value>
+        </entry>
         <entry key="stack_trace">
           <value>
             <list>
@@ -289,6 +296,7 @@
       <root url="file://$PROJECT_DIR$/../../../Flutter/.pub-cache/hosted/pub.dartlang.org/scoped_model-0.3.0/lib" />
       <root url="file://$PROJECT_DIR$/../../../Flutter/.pub-cache/hosted/pub.dartlang.org/shared_preferences-0.4.3/lib" />
       <root url="file://$PROJECT_DIR$/../../../Flutter/.pub-cache/hosted/pub.dartlang.org/source_span-1.4.1/lib" />
+      <root url="file://$PROJECT_DIR$/../../../Flutter/.pub-cache/hosted/pub.dartlang.org/sqflite-0.13.0/lib" />
       <root url="file://$PROJECT_DIR$/../../../Flutter/.pub-cache/hosted/pub.dartlang.org/stack_trace-1.9.3/lib" />
       <root url="file://$PROJECT_DIR$/../../../Flutter/.pub-cache/hosted/pub.dartlang.org/stream_channel-1.6.8/lib" />
       <root url="file://$PROJECT_DIR$/../../../Flutter/.pub-cache/hosted/pub.dartlang.org/string_scanner-1.0.4/lib" />
