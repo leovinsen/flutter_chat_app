@@ -19,7 +19,9 @@ class AddContactScreenState extends State<AddContactScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        title: Text('Add a User'),
+      ),
       body: Builder(
         builder: (context){
           return _body(context);
@@ -62,24 +64,38 @@ class AddContactScreenState extends State<AddContactScreen> {
         .child('usersInfo/$contactId')
         .once();
 
+    SnackBar snackBar;
     ///If user exists, value will be non-null
     if (snapshot.value != null) {
       await db.reference().child(
           'usersContact/${widget.userPublicId}/$contactId').set(true);
-//      await db.reference().child(
-//          'usersContact/${widget.userPublicId}/$contactId').push().set(
-//          contactId);
-      setState(() {
-        loading = false;
-      });
-      Scaffold.of(context).showSnackBar(SnackBar(
-        content: Text('User $contactId successfully added.'),
-        duration: Duration(seconds: 2),));
+      snackBar = SnackBar(
+          content: Row(
+            children: <Widget>[
+              Icon(Icons.check, color: Colors.green,),
+              SizedBox(width: 10.0,),
+              Text('User $contactId successfully added.')
+            ],
+          ),
+          duration: Duration(seconds: 2)
+      );
     } else {
-      Scaffold.of(context).showSnackBar(SnackBar(
-        content: Text('User $contactId not found.'),
-        duration: Duration(seconds: 2),));
+
+      snackBar = SnackBar(
+        content: Row(
+          children: <Widget>[
+            Icon(Icons.warning, color: Colors.yellow,),
+            SizedBox(width: 10.0,),
+            Text('User $contactId not found.')
+          ],
+        ),
+        duration: Duration(seconds: 2));
     }
+
+    setState(() {
+      loading = false;
+    });
+    Scaffold.of(context).showSnackBar(snackBar);
   }
 }
 

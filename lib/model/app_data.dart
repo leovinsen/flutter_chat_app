@@ -104,8 +104,6 @@ class AppData extends Model {
   }
 
   void retrieveContactInfo(Event event) async {
-    //print('retrieveContactsInfo '+ event.snapshot.value.toString());
-    print('retrieveContactsInfo '+event.snapshot.key.toString());
     String contactId = event.snapshot.key;
     print('Adding contact named $contactId');
 
@@ -113,12 +111,6 @@ class AppData extends Model {
         await _db.reference().child('usersInfo/$contactId').once();
     _contactsData.add(UserData.fromSnapshot(snapshot));
 
-//    Map map = event.snapshot.value;
-//    String contactId = map.values.first.toString();
-//    print('OnNewContact: $contactId');
-//    DataSnapshot snapshot =
-//        await _db.reference().child('usersInfo/$contactId').once();
-//    _contactsData.add(UserData.fromSnapshot(snapshot));
   }
 
   void onProfileUpdate(Event event) async {
