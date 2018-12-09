@@ -64,16 +64,20 @@ class AddContactScreenState extends State<AddContactScreen> {
 
     ///If user exists, value will be non-null
     if (snapshot.value != null) {
-//      await db.reference().child(
-//          'usersContact/${widget.userPublicId}/$contactId').set(true);
       await db.reference().child(
-          'usersContact/${widget.userPublicId}/$contactId').push().set(
-          contactId);
+          'usersContact/${widget.userPublicId}/$contactId').set(true);
+//      await db.reference().child(
+//          'usersContact/${widget.userPublicId}/$contactId').push().set(
+//          contactId);
       setState(() {
         loading = false;
       });
       Scaffold.of(context).showSnackBar(SnackBar(
         content: Text('User $contactId successfully added.'),
+        duration: Duration(seconds: 2),));
+    } else {
+      Scaffold.of(context).showSnackBar(SnackBar(
+        content: Text('User $contactId not found.'),
         duration: Duration(seconds: 2),));
     }
   }

@@ -43,7 +43,6 @@ class AppData extends Model {
   void onNewChat(Event event) async {
     //Chat Room ID
     String chatUID = event.snapshot.key;
-    print('onNewChat: $chatUID');
 
     var snapshot = await _db.reference().child('chats/$chatUID').once();
 
@@ -104,13 +103,22 @@ class AppData extends Model {
     }
   }
 
-  void onNewContact(Event event) async {
-    Map map = event.snapshot.value;
-    String contactId = map.values.first.toString();
-    print('OnNewContact: $contactId');
+  void retrieveContactInfo(Event event) async {
+    //print('retrieveContactsInfo '+ event.snapshot.value.toString());
+    print('retrieveContactsInfo '+event.snapshot.key.toString());
+    String contactId = event.snapshot.key;
+    print('Adding contact named $contactId');
+
     DataSnapshot snapshot =
         await _db.reference().child('usersInfo/$contactId').once();
     _contactsData.add(UserData.fromSnapshot(snapshot));
+
+//    Map map = event.snapshot.value;
+//    String contactId = map.values.first.toString();
+//    print('OnNewContact: $contactId');
+//    DataSnapshot snapshot =
+//        await _db.reference().child('usersInfo/$contactId').once();
+//    _contactsData.add(UserData.fromSnapshot(snapshot));
   }
 
   void onProfileUpdate(Event event) async {
@@ -131,7 +139,7 @@ class AppData extends Model {
 
   void initSubscriptions() {
     print("Initiating Subscriptions");
-    _onNewContactsSub = contactsCallback(userPublicId, onNewContact);
+    _onNewContactsSub = contactsCallback(userPublicId, retrieveContactInfo);
     _onNewChatSub = chatRoomCallback(userPublicId, onNewChat);
     _onProfileUpdate = _db.reference().child('usersInfo/$userPublicId').onChildChanged.listen( onProfileUpdate);
   }
@@ -151,7 +159,6 @@ class AppData extends Model {
     return _db
         .reference()
         .child('usersContact/$publicId')
-        .orderByKey()
         .onChildAdded
         .listen(fn);
   }
