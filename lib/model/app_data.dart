@@ -26,14 +26,14 @@ class AppData extends Model {
   List<UserData> get contactsData => _contactsData;
   List<ChatRoomData> get chatRoomData => _chatRoomsData;
 
-  initUserModel(String publicId) async {
-    _userPublicId = publicId;
-
-    var snapshot = await _db.reference().child('usersInfo/$publicId').once();
-    _userDisplayName = snapshot.value['displayName'];
-    _userThumbUrl = snapshot.value['thumbUrl'];
-    notifyListeners();
-  }
+//  initUserModel(String publicId) async {
+//    _userPublicId = publicId;
+//
+//    var snapshot = await _db.reference().child('usersInfo/$publicId').once();
+//    _userDisplayName = snapshot.value['displayName'];
+//    _userThumbUrl = snapshot.value['thumbUrl'];
+//    notifyListeners();
+//  }
 
   /*
     Callback for branch userChats

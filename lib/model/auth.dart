@@ -1,25 +1,8 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter_chat_app/model/cache_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-//abstract class BaseAuth {
-//
-//  static Future<String> currentUser();
-//  static Future<ResultMessage> signIn(String email, String password);
-//  static Future<String> createUser(String email, String password);
-//  static Future<void> signOut();
-//  static Future<void> storeUserId(String userId);
-//}
-
-
-enum AuthStatus {
-  notSignedIn,
-  incompleteRegistration,
-  signedIn,
-}
 
 class Auth {
   static final Auth instance = Auth._internal();
@@ -34,7 +17,7 @@ class Auth {
     //String result;
     try{
       FirebaseUser user = await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
-      CacheHandler.storeUserAuthId(user.uid);
+//      CacheHandler.storeUserAuthId(user.uid);
       result = ResultMessage(message: user.uid, code: ResultCode.success);
     } catch (e){
       result = ResultMessage(message: e.toString(), code:ResultCode.wrongEmail);
@@ -50,7 +33,7 @@ class Auth {
     try{
       FirebaseUser user = await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
       result = user.uid;
-      CacheHandler.storeUserAuthId(user.uid);
+//      CacheHandler.storeUserAuthId(user.uid);
     } catch (e){
       result = e;
     }
@@ -59,6 +42,7 @@ class Auth {
 
   Future<String> currentUser() async {
     FirebaseUser user = await _firebaseAuth.currentUser();
+    print('userUID: ${user.uid}');
     return user != null ? user.uid : null;
   }
 
@@ -71,16 +55,16 @@ class Auth {
     sp.setString('userId', userId);
   }
 
-  Future<AuthStatus> authenticate() async {
-    String uniqueAuthId = await Auth.instance.currentUser();
-    if(uniqueAuthId != null){
-      var snapshot = await FirebaseDatabase.instance.reference().child('users/$uniqueAuthId').once();
-      String publicId = snapshot.value;
-      return publicId == null ? AuthStatus.incompleteRegistration : AuthStatus.signedIn;
-    } else {
-      return AuthStatus.notSignedIn;
-    }
-  }
+//  Future<AuthStatus> authenticate() async {
+//    String uniqueAuthId = await Auth.instance.currentUser();
+//    if(uniqueAuthId != null){
+//      var snapshot = await FirebaseDatabase.instance.reference().child('users/$uniqueAuthId').once();
+//      String publicId = snapshot.value;
+//      return publicId == null ? AuthStatus.incompleteRegistration : AuthStatus.signedIn;
+//    } else {
+//      return AuthStatus.notSignedIn;
+//    }
+//  }
   
 
 }
