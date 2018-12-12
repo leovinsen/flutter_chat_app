@@ -18,6 +18,11 @@ class CacheSharedPrefs {
 //    _sp = await SharedPreferences.getInstance();
 //  }
 
+  Future<bool> destroy() async {
+    var sp = await getSP();
+    return await sp.clear();
+  }
+
   Future<SharedPreferences> getSP() async {
     if (!didInit) {
       _sp = await SharedPreferences.getInstance();
@@ -51,8 +56,8 @@ class CacheSharedPrefs {
   Future<bool> updateUserPublicId(String id) async {
     return await _sp.setString(_kPublicId, id);
   }
-
-  Future<bool> updateUserAuthStatus(String authStatus) async {
-    return await _sp.setString(_kAuthStatus, authStatus);
-  }
+//
+//  Future<bool> updateUserAuthStatus(String authStatus) async {
+//    return await _sp.setString(_kAuthStatus, authStatus);
+//  }
 }

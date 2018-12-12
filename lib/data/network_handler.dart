@@ -1,15 +1,82 @@
+import 'dart:async';
+
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter_chat_app/model/user_data.dart';
 
 class NetworkHandler {
 
   static final NetworkHandler instance = NetworkHandler._internal();
-  static final FirebaseDatabase db = FirebaseDatabase.instance;
+  static final FirebaseDatabase _db = FirebaseDatabase.instance;
+
+  final String _branchUsersContact = 'usersContacts';
+  final String _branchUserChats = 'usersChats';
+  final String _branchChats ='chats';
+  final String _branchUsersInfo ='usersInfo';
+  final String _branchUsers ='users';
+  final String _branchChatMessages = 'chatsMessages';
+
 
   NetworkHandler._internal();
 
-  Future<String> fetchPublicId(String token) async {
-    var snapshot = await db.reference().child('users/$token').once();
+  Future<String> getPublicId(String token) async {
+    var snapshot = await _db.reference().child('$_branchUsers/$token').once();
     return snapshot.value;
+  }
+
+  Future registerPublicId(String token, String publicId) async {
+    return await _db.reference().child('$_branchUsers/$token').set(publicId);
+  }
+
+  Future updateUserInfo(Map<String,String> newData, String publicId) async {
+    return await _db.reference().child('$_branchUsersInfo/$publicId').update(newData);
+  }
+
+  Future<String> getChatMessage(String chatUID, String messageUID) async {
+    DataSnapshot snapshot =
+        await _db.reference().child('$_branchChatMessages/$chatUID/$messageUID').once();
+    return snapshot.value['message'];
+  }
+
+  Future<String> getUserDisplayName(String publicId) async {
+    DataSnapshot snapshot =
+        await _db.reference().child('$_branchUsersInfo/$publicId/${UserData.kDisplayName}').once();
+    return snapshot.value;
+  }
+
+  Future<DataSnapshot> getChatRoomSnapshot(String chatId) async{
+    return await _db.reference().child('$_branchChats/$chatId').once();
+  }
+
+  StreamSubscription<Event> contactsCallback(
+      String publicId, Function(Event) fn) {
+    return _db
+        .reference()
+        .child('$_branchUsersContact/$publicId')
+        .onChildAdded
+        .listen(fn);
+  }
+
+  StreamSubscription<Event> chatRoomCallback(
+      String publicId, Function(Event) fn) {
+    return _db
+        .reference()
+        .child('$_branchUserChats/$publicId')
+        .orderByChild('lastMessageSentTime')
+        .onChildAdded
+        .listen(fn);
+  }
+
+  StreamSubscription<Event> newMessageCallback(
+      String chatUID, Function(Event) fn) {
+    return _db.reference().child('$_branchChats/$chatUID').onValue.listen(fn);
+  }
+
+  StreamSubscription<Event> profileUpdateListener(String publicId, Function(Event) fn){
+    return _db.reference().child('$_branchUsersInfo/$publicId').onChildChanged.listen(fn);
+  }
+
+  Future<DataSnapshot> getUserDataSnapshot(String publicId) async{
+    return await _db.reference().child('$_branchUsersInfo/$publicId').once();
   }
 
 }

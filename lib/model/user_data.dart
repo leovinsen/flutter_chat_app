@@ -1,9 +1,13 @@
 import 'package:firebase_database/firebase_database.dart';
 
 class UserData{
-  String _publicId;
-  String _displayName;
-  String _thumbUrl;
+  static final kPublicId = "publicId";
+  static final kDisplayName = "displayName";
+  static final kThumbUrl = "thumbUrl";
+
+  String _publicId,
+      _displayName,
+      _thumbUrl;
 
   UserData(String publicId, String displayName, String thumbUrl){
     _publicId = publicId;
@@ -12,15 +16,21 @@ class UserData{
   }
 
   UserData.fromSnapshot(DataSnapshot snapshot)
-      : _publicId = snapshot.value['publicId'],
-        _displayName = snapshot.value['displayName'],
-        _thumbUrl = snapshot.value['thumbUrl'];
+      : _publicId = snapshot.value[kPublicId],
+        _displayName = snapshot.value[kDisplayName],
+        _thumbUrl = snapshot.value[kThumbUrl];
+
+  UserData.fromMap(Map map) {
+    _publicId = map[kPublicId] as String;
+    _displayName = map[kDisplayName] as String;
+    _thumbUrl = map[kThumbUrl] as String;
+  }
 
   toJson(){
     return {
-      'publicId' : _publicId,
-      'displayName' : _displayName,
-      'thumbUrl' : _thumbUrl,
+      kPublicId : _publicId,
+      kDisplayName : _displayName,
+      kThumbUrl : _thumbUrl,
     };
   }
 

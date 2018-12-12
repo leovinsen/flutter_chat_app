@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/data/repository.dart';
 import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/ui/chat_editor.dart';
 import 'package:flutter_chat_app/widgets/circular_profile_image.dart';
@@ -27,7 +28,7 @@ class ProfileScreenState extends State<ProfileScreen> {
     if(imgSource == null) return;
 
     //createDialog(context);
-    String publicId = widget.appData.userPublicId;
+    String publicId = Repository.get().getUserPublicIdFromMemory();
     File imageFile = await ImagePicker.pickImage(source: imgSource, maxWidth: 400, maxHeight: 400);
     StorageReference ref =
     FirebaseStorage.instance.ref().child(publicId).child("profile_picture.jpg");
@@ -89,8 +90,8 @@ class ProfileScreenState extends State<ProfileScreen> {
           children: <Widget>[
             CircularNetworkProfileImage(
               size: 300.0,
-              url: widget.appData.userThumbUrl,
-              publicId: widget.appData.userPublicId,
+              url: Repository.get().thumbUrl,
+              publicId: Repository.get().getUserPublicIdFromMemory(),
             ),
             Positioned(
               right: 20.0,
@@ -108,7 +109,7 @@ class ProfileScreenState extends State<ProfileScreen> {
         alignment: Alignment.center,
         child: ListTile(
           title: Text('Public ID'),
-          subtitle: Text(widget.appData.userPublicId, style: blueSubtitle(context)),
+          subtitle: Text(Repository.get().getUserPublicIdFromMemory(), style: blueSubtitle(context)),
         ),
         decoration: whiteBoxDecoration()
     );
@@ -119,7 +120,7 @@ class ProfileScreenState extends State<ProfileScreen> {
       alignment: Alignment.center,
         child: ListTile(
           title: Text('Display Name'),
-          subtitle: Text(widget.appData.userDisplayName, style: blueSubtitle(context),),
+          subtitle: Text(Repository.get().displayName, style: blueSubtitle(context),),
           trailing: IconButton(icon: Icon(Icons.edit), color: Theme.of(context).primaryColor, onPressed: () =>  _openNameEditor()),
         ),
       decoration: whiteBoxDecoration(),
@@ -143,7 +144,7 @@ class ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _openNameEditor() async {
-    String originalName = widget.appData.userDisplayName;
+    String originalName = Repository.get().displayName;
 
     final String results = await
     Navigator.of(context).push(
@@ -152,7 +153,7 @@ class ProfileScreenState extends State<ProfileScreen> {
 
     if(results != null && results.isNotEmpty && results != originalName){
       FirebaseDatabase db = FirebaseDatabase.instance;
-      db.reference().child('usersInfo/${widget.appData.userPublicId}').update({'displayName' : results });
+      db.reference().child('usersInfo/${Repository.get().getUserPublicIdFromMemory()}').update({'displayName' : results });
     }
   }
 

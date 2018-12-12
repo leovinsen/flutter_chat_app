@@ -1,11 +1,10 @@
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/model/user_data.dart';
+import 'package:flutter_chat_app/data/repository.dart';
 
 class AdditionalInfoScreen extends StatefulWidget {
-  final String _uniqueAuthId;
+  final String _authToken;
   final Function _refresh;
-  AdditionalInfoScreen(this._uniqueAuthId, this._refresh);
+  AdditionalInfoScreen(this._authToken, this._refresh);
   @override
   _AdditionalInfoScreenState createState() => _AdditionalInfoScreenState();
 }
@@ -14,6 +13,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
   static final formKey = GlobalKey<FormState>();
   String _publicId;
   String _displayName;
+  bool _loading = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,7 +22,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
         centerTitle: true,
         leading: Container(),
         actions: <Widget>[
-          IconButton(
+          _loading ? CircularProgressIndicator() : IconButton(
             icon: Icon(Icons.check),
             onPressed: () => _handleSubmit(),
           )
@@ -86,40 +86,20 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
     if (form.validate()) {
       form.save();
       try {
-        //default Thumbnail for new users
-        String thumbUrl = 'https://firebasestorage.googleapis.com/v0/b/flutter-chat-app-10a1f'
-            '.appspot.com/o/profile_default_thumbnail_128px.png?alt=media&token=d8769ef5-281f-4d16-a4cd-f733f85fe45c';
+        setState(() {
+          _loading = true;
+        });
 
-        UserData user = UserData(_publicId, _displayName, thumbUrl);
-
-
-        FirebaseDatabase.instance
-          ..reference().child('users/${widget._uniqueAuthId}').set(_publicId)
-          ..reference().child('usersInfo/${user.publicId}').set(user.toJson());
-
-        //Create association between Auth ID with Public ID
-
-
-
-
-
+        Repository.get().finishRegistration(_publicId, _displayName).then((a){
+          Repository.get().authenticate();
+          if(mounted) setState(() {
+            _loading = false;
+          });
+        });
 
 
 
         //Create a record in UsersInfo which contains user's personal information
-
-
-
-//
-//        helper.updateUsersInfo(user).then((val){
-//          CacheHandler.storeUserPublicId(_publicId);
-//          CacheHandler.storeUserDisplayName(_displayName);
-//          CacheHandler.storeUserThumbnailUrl(thumbUrl);
-//
-//          widget._refresh();
-//
-//          //Navigator.pop(context, _publicId);
-//        });
       } catch (e){
         Scaffold.of(context).showSnackBar(
           SnackBar(content: Text('ERROR caught'))

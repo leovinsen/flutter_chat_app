@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/data/repository.dart';
 import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/ui/add_contact_screen.dart';
 import 'package:flutter_chat_app/ui/chat_tab.dart';
@@ -22,8 +23,9 @@ class _HomePageNewState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    appData = AppData.of(context);
-    appData.initSubscriptions();
+    Repository.get().initSubscriptions();
+//    appData = AppData.of(context);
+//    appData.initSubscriptions();
   }
 
   @override
@@ -46,7 +48,7 @@ class _HomePageNewState extends State<HomePage> {
                   icon: Icon(Icons.refresh),
                   onPressed: () {
                     setState(() {
-                      model.contactsData.forEach((user) {
+                      Repository.get().contactsData.forEach((user) {
                         print(user.toString());
                       });
                     });
@@ -60,8 +62,8 @@ class _HomePageNewState extends State<HomePage> {
                 IconButton(
                   icon: Icon(Icons.exit_to_app),
                   onPressed: () {
-                    appData.cancelSubscriptions();
-                    widget.onSignOut();
+                    Repository.get().cancelSubscriptions();
+                    Repository.get().signOut();
                   },
                 )
               ],
@@ -77,11 +79,11 @@ class _HomePageNewState extends State<HomePage> {
 
             body: TabBarView(
               children: <Widget>[
-                ChatTab(chatModels: model.chatRoomData,
+                ChatTab(chatModels: Repository.get().chatRoomData,
 //                    userPublicId: model.userPublicId
                 ),
-                ContactsTab(contacts: model.contactsData,
-                    userPublicId: model.userPublicId),
+                ContactsTab(contacts: Repository.get().contactsData,
+                    userPublicId: Repository.get().getUserPublicIdFromMemory()),
                 ProfileScreen(appData: model)
               ],
             ),
@@ -93,7 +95,9 @@ class _HomePageNewState extends State<HomePage> {
 
   void addContact() async {
     final results = await Navigator.push(
-        context, MaterialPageRoute(builder: (_) => AddContactScreen(appData.userPublicId)));
+        context, MaterialPageRoute(builder: (_) => AddContactScreen())
+    );
+  }
 //    if (results != null) {
 //      var model = AppData.of(context);
 //      FirebaseDatabase db = FirebaseDatabase.instance;
@@ -116,6 +120,7 @@ class _HomePageNewState extends State<HomePage> {
 //            .set(contactPublicId);
 //      }
 //    }
-  }
+
+
 
 }

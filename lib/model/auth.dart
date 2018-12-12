@@ -42,7 +42,7 @@ class Auth {
 
   Future<String> currentUser() async {
     FirebaseUser user = await _firebaseAuth.currentUser();
-    print('userUID: ${user.uid}');
+    //print('userUID: ${user.uid}');
     return user != null ? user.uid : null;
   }
 

@@ -17,17 +17,24 @@ class RootPage extends StatefulWidget {
 
 class _RootPageState extends State<RootPage> {
   final String tag = 'root-page';
-//  final BaseAuth auth = Auth();
 
-  String _uniqueAuthId;
-//  String _publicId;
   AuthStatus _authStatus;
   bool isAuthenticating = true;
 
   @override
   initState() {
     super.initState();
-    authenticate();
+    init();
+  }
+
+  init() async {
+
+     if(await Repository.get().loadCache()){
+      _authStatus = AuthStatus.signedIn;
+      isAuthenticating = false;
+     } else {
+       authenticate();
+     }
   }
 
   authenticate() async {
@@ -37,13 +44,6 @@ class _RootPageState extends State<RootPage> {
         isAuthenticating = false;
       });
     });
-//    String Repository.get()
-//    Auth.instance.authenticate().then((authStatus){
-//      setState(() {
-//        _authStatus = authStatus;
-//        isAuthenticating = false;
-//      });
-//    });
   }
 
   void _signIn() {
@@ -82,11 +82,7 @@ class _RootPageState extends State<RootPage> {
           );
 
         case AuthStatus.incompleteRegistration:
-          return AdditionalInfoScreen(_uniqueAuthId, () {
-            setState(() {
-
-            });
-          });
+          return AdditionalInfoScreen(Repository.get().getUserPublicIdFromMemory(), authenticate);
         case AuthStatus.signedIn:
           //AppData.of(context).initUserModel(_publicId);
           return HomePage(
@@ -96,28 +92,23 @@ class _RootPageState extends State<RootPage> {
     }
   }
 
-  Widget _loadingScreen(){
+  Widget _loadingScreen() {
     return Container(
-        color: Theme
-            .of(context)
-            .primaryColor,
-//        padding: const EdgeInsets.all(10.0),
-//        alignment: Alignment.center,
-//        child: Column(
-//          mainAxisAlignment: MainAxisAlignment.end,
-//          children: <Widget>[
-//
-//            SizedBox(
-//                height: 60.0,
-//                width: 60.0,
-//                child: CircularProgressIndicator(
-//                  strokeWidth: 4.0,
-//                )),
-//            SizedBox(height: 50.0),
-//            Text('Signing In...')
-//
-//          ],
-//        )
+      color: Theme
+          .of(context)
+          .primaryColor,
+      child: appLogo(context),
+    );
+  }
+
+  Widget appLogo(BuildContext context) {
+    return Image(
+      image: AssetImage('assets/logo.png'),
+      height: 128.0,
+      width: 128.0,
+      color: Theme
+          .of(context)
+          .accentColor,
     );
   }
 

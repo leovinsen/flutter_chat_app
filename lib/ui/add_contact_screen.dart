@@ -1,10 +1,11 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/data/repository.dart';
 
 class AddContactScreen extends StatefulWidget {
-  final String userPublicId;
-
-  const AddContactScreen(this.userPublicId);
+//  final String userPublicId;
+//
+//  const AddContactScreen(this.userPublicId);
 
   @override
   AddContactScreenState createState() {
@@ -15,6 +16,21 @@ class AddContactScreen extends StatefulWidget {
 class AddContactScreenState extends State<AddContactScreen> {
   final TextEditingController _idFieldController = TextEditingController();
   bool loading = false;
+  String _publicId;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+  }
+
+  void init(){
+    Repository repo = Repository.get();
+    repo.getUserAuthToken().then((token) async {
+      _publicId = await repo.getUserPublicId(token);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +84,7 @@ class AddContactScreenState extends State<AddContactScreen> {
     ///If user exists, value will be non-null
     if (snapshot.value != null) {
       await db.reference().child(
-          'usersContact/${widget.userPublicId}/$contactId').set(true);
+          'usersContact/${_publicId}/$contactId').set(true);
       snackBar = SnackBar(
           content: Row(
             children: <Widget>[
