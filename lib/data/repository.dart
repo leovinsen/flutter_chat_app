@@ -70,6 +70,14 @@ class Repository  {
     await sharedPrefs.init();
   }
 
+  Future<String> registerNewAccount(String email, String password) async{
+    return await auth.createUser(email, password);
+  }
+
+  Future signIn(String email, String password){
+    auth.signIn(email, password);
+  }
+
   Future signOut() async {
     auth.signOut().then((a) {
       sharedPrefs.destroy();
@@ -126,16 +134,20 @@ class Repository  {
   Future<String> getUserAuthToken() async {
     String token;
     token = await sharedPrefs.getUserAuthToken();
-    if (token == null) token = await auth.currentUser();
+    if (token == null) {
+      token = await auth.currentUser();
+      sharedPrefs.updateUserAuthToken(token);
+    }
+      return token;
+    }
 
-    return token;
-  }
 
   Future<String> getUserPublicId(String token) async {
     String publicId = await sharedPrefs.getUserPublicId();
     print('sharedPrefs: $publicId');
     if (publicId == null){
       publicId = await network.getPublicId(token);
+      sharedPrefs.updateUserPublicId(publicId);
       print('publicId networkFetch: $publicId');
     }
     return publicId;
@@ -143,6 +155,7 @@ class Repository  {
 
   Future<String> getUserDisplayName() async {
     String name = await sharedPrefs.getUserDisplayName();
+    return name;
   }
 
   Future finishRegistration(String publicId, String displayName) async {
@@ -154,37 +167,61 @@ class Repository  {
 
       //Update cache
       await database.insert(UserData(publicId, displayName, null));
-//      return true;
+      await sharedPrefs.updateUserPublicId(publicId);
+      await sharedPrefs.updateUserDisplayName(displayName);
     } catch(e) {
       throw Exception(e.toString());
     }
   }
 
-//  ///TEMPORARY ONLY.
-//  String getUserPublicIdFromMemory() {
-//    return _publicId;
+//  void initSubscriptions() {
+//    getUserAuthToken().then((token) async {
+//      String publicId = await getUserPublicId(token);
+//      _onNewContactsSub =
+//          network.contactsCallback(publicId, retrieveContactInfo);
+//      _onNewChatSub = network.chatRoomCallback(publicId, onNewChat);
+//      _onProfileUpdate =
+//          network.profileUpdateListener(publicId, onProfileUpdate);
+//    });
+//  }
+//
+//  void cancelSubscriptions() {
+//    print("Cancelling Subscriptions");
+//    _onNewContactsSub.cancel();
+//    _onNewChatSub.cancel();
+//    _onProfileUpdate.cancel();
+//    _chatRoomSubs.forEach((sub) {
+//      sub.cancel();
+//    });
 //  }
 
-
-  void initSubscriptions() {
-    getUserAuthToken().then((token) async {
-      String publicId = await getUserPublicId(token);
-      _onNewContactsSub =
-          network.contactsCallback(publicId, retrieveContactInfo);
-      _onNewChatSub = network.chatRoomCallback(publicId, onNewChat);
-      _onProfileUpdate =
-          network.profileUpdateListener(publicId, onProfileUpdate);
-    });
+  StreamSubscription<Event> newMessagesListener(String chatRoomId, Function fn)  {
+    return network.newMessageCallback(chatRoomId, fn);
   }
 
-  void cancelSubscriptions() {
-    print("Cancelling Subscriptions");
-    _onNewContactsSub.cancel();
-    _onNewChatSub.cancel();
-    _onProfileUpdate.cancel();
-    _chatRoomSubs.forEach((sub) {
-      sub.cancel();
-    });
+  StreamSubscription<Event> newContactListener(String userId, Function fn) {
+    return network.contactsCallback(userId, fn);
+  }
+
+  StreamSubscription<Event> newChatRoomListener(String userId, Function fn) {
+    return network.chatRoomCallback(userId, fn);
+  }
+
+  StreamSubscription<Event> onProfileUpdate(String userId,Function fn) {
+    return network.profileUpdateListener(userId, fn);
+  }
+
+  Future<UserData> getUserDataFor(String publicId) async {
+    //Check Cache first
+//    UserData user;
+//    user = await database.getUserData(publicId);
+
+    //If not found go online
+
+    UserData user = await network.getUserData(publicId);
+    database.update(user);
+
+    return user;
   }
 
   void onChatNewMessage(Event event) async {
@@ -214,19 +251,23 @@ class Repository  {
     _contactsData.add(user);
   }
 
-  void onProfileUpdate(Event event) async {
-    var val = event.snapshot.value;
-    print('onProfileUpdate: $val');
-//    switch (event.snapshot.key) {
-//      case "thumbUrl":
-//        _thumbUrl = val;
-//        break;
-//      case "displayName":
-//        _displayName = val;
-//        break;
-//    }
+//  void onProfileUpdate(Event event) async {
+//    var val = event.snapshot.value;
+//    print('onProfileUpdate: $val');
+////    switch (event.snapshot.key) {
+////      case "thumbUrl":
+////        _thumbUrl = val;
+////        break;
+////      case "displayName":
+////        _displayName = val;
+////        break;
+////    }
+//
+////    notifyListeners();
+//  }
 
-//    notifyListeners();
+  Future<String> getChatMessage(String chatRoomId, String messageId ) async {
+    return await network.getChatMessage(chatRoomId, messageId);
   }
 
 /*
@@ -234,11 +275,8 @@ class Repository  {
     Retrieves active chats which involves the user
     Then, retrieve the information about the chat rooms
    */
-  void onNewChat(Event event) async {
-    //Chat Room ID
-    String chatUID = event.snapshot.key;
-
-    var snapshot = await network.getChatRoomSnapshot(chatUID);
+  Future<ChatRoomData> getChatRoom(String chatRoomId) async{
+    var snapshot = await network.getChatRoomSnapshot(chatRoomId);
 
     List allMembersPublicId =
     Map<String, bool>.from(snapshot.value['members']).keys.toList();
@@ -252,17 +290,48 @@ class Repository  {
 
     String lastMessageSentID = snapshot.value['lastMessageSent'];
     String lastMessageSent = await network.getChatMessage(
-        chatUID, lastMessageSentID);
+        chatRoomId, lastMessageSentID);
     int lastMessageSentTime = snapshot.value['lastMessageSentTime'];
 
-    _chatRoomsData.add(ChatRoomData(
-      chatUID: chatUID,
+    return ChatRoomData(
+      chatUID: chatRoomId,
       allMembersPublicId: allMembersPublicId,
       allMembers: allMembersDisplayName,
       lastMessageSentUID: lastMessageSentID,
       lastMessageSent: lastMessageSent,
       lastMessageSentTime: lastMessageSentTime,
-    ));
+    );
+  }
+
+//  void onNewChat(Event event) async {
+//    //Chat Room ID
+//    String chatUID = event.snapshot.key;
+//
+//    var snapshot = await network.getChatRoomSnapshot(chatUID);
+//
+//    List allMembersPublicId =
+//    Map<String, bool>.from(snapshot.value['members']).keys.toList();
+//
+//    ///Note: Might need to add await to getUserDisplayName
+//    List<String> allMembersDisplayName = [];
+//
+//    for (String id in allMembersPublicId) {
+//      allMembersDisplayName.add(await network.getUserDisplayName(id));
+//    }
+//
+//    String lastMessageSentID = snapshot.value['lastMessageSent'];
+//    String lastMessageSent = await network.getChatMessage(
+//        chatUID, lastMessageSentID);
+//    int lastMessageSentTime = snapshot.value['lastMessageSentTime'];
+//
+//    _chatRoomsData.add(ChatRoomData(
+//      chatUID: chatUID,
+//      allMembersPublicId: allMembersPublicId,
+//      allMembers: allMembersDisplayName,
+//      lastMessageSentUID: lastMessageSentID,
+//      lastMessageSent: lastMessageSent,
+//      lastMessageSentTime: lastMessageSentTime,
+//    ));
 
     // Future<UserData> getUserDataFor
 //
@@ -312,4 +381,3 @@ class Repository  {
 
 
   }
-}

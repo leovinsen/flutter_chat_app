@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class CacheSharedPrefs {
   final String _kAuthToken = 'userAuthToken';
   final String _kPublicId = 'userPublicId';
-  final String _kAuthStatus = 'userAuthStatus';
+//  final String _kAuthStatus = 'userAuthStatus';
   final String _kDisplayName = 'userDisplayName';
 
 //  static final CacheSharedPrefs instance = CacheSharedPrefs._internal();
@@ -55,10 +55,10 @@ class CacheSharedPrefs {
     return sp.get(_kDisplayName);
   }
 
-  Future<String> getUserAuthStatus() async {
-    var sp = await getSP();
-    return sp.get(_kAuthStatus);
-  }
+//  Future<String> getUserAuthStatus() async {
+//    var sp = await getSP();
+//    return sp.get(_kAuthStatus);
+//  }
 
   Future<bool> updateUserAuthToken(String token) async {
     return await _sp.setString(_kAuthToken, token);

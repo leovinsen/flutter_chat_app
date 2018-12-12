@@ -43,6 +43,12 @@ class NetworkHandler {
     return snapshot.value;
   }
 
+  Future<UserData> getUserData(String publicId) async {
+    DataSnapshot snapshot =
+        await _db.reference().child('$_branchUsersInfo/$publicId').once();
+    return UserData.fromSnapshot(snapshot);
+  }
+
   Future<DataSnapshot> getChatRoomSnapshot(String chatId) async{
     return await _db.reference().child('$_branchChats/$chatId').once();
   }
