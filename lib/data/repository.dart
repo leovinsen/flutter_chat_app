@@ -7,20 +7,20 @@ import 'package:flutter_chat_app/data/network_handler.dart';
 import 'package:flutter_chat_app/model/auth.dart';
 import 'package:flutter_chat_app/model/chat_room_data.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
-
-enum AuthStatus {
-  notSignedIn,
-  incompleteRegistration,
-  signedIn,
-}
-
-AuthStatus enumFromString(String str){
-  return AuthStatus.values.firstWhere((elem) => elem.toString() == str, orElse: ()=> null);
-}
+//
+//enum AuthStatus {
+//  notSignedIn,
+//  incompleteRegistration,
+//  signedIn,
+//}
+//
+//AuthStatus enumFromString(String str){
+//  return AuthStatus.values.firstWhere((elem) => elem.toString() == str, orElse: ()=> null);
+//}
 
 class Repository  {
 
-  static final Repository _repo = Repository._internal();
+  //static final Repository _repo = Repository._internal();
 
   CacheDatabase database;
   CacheSharedPrefs sharedPrefs;
@@ -32,15 +32,15 @@ class Repository  {
   StreamSubscription<Event> _onNewChatSub;
   StreamSubscription<Event> _onProfileUpdate;
 
-  String _publicId;
-  String _token;
-  String _thumbUrl;
-  String _displayName;
-
-  String get thumbUrl => _thumbUrl;
-  String get displayName => _displayName;
-
-
+//  String _publicId;
+//  String _token;
+//  String _thumbUrl;
+//  String _displayName;
+//
+//  String get thumbUrl => _thumbUrl;
+//  String get displayName => _displayName;
+//
+//
   List<UserData> _contactsData = [];
   List<ChatRoomData> _chatRoomsData = [];
 
@@ -49,15 +49,25 @@ class Repository  {
   List<ChatRoomData> get chatRoomData => _chatRoomsData;
 
 
-  static Repository get() {
-    return _repo;
-  }
+//  static Repository get() {
+//    return _repo;
+//  }
 
-  Repository._internal() {
+//  Repository._internal() {
+//    database = CacheDatabase.get();
+//    sharedPrefs = CacheSharedPrefs.instance;
+//    auth = Auth.instance;
+//    network = NetworkHandler.instance;
+//  }
+  Repository(){
     database = CacheDatabase.get();
-    sharedPrefs = CacheSharedPrefs.instance;
+    sharedPrefs = CacheSharedPrefs();
     auth = Auth.instance;
     network = NetworkHandler.instance;
+  }
+
+  Future init() async {
+    await sharedPrefs.init();
   }
 
   Future signOut() async {
@@ -68,15 +78,12 @@ class Repository  {
     });
   }
 
-  Future<bool> loadCache() async {
+  Future<bool> loadUserInfo() async {
     print('Loading Cache...');
-    _publicId = await sharedPrefs.getUserPublicId();
-    if(_publicId != null) {
-      UserData user = await database.getUserData(_publicId);
+    String publicId = await sharedPrefs.getUserPublicId();
+    if(publicId != null) {
+      UserData user = await database.getUserData(publicId);
       if (user != null) {
-        _publicId = user.publicId;
-        _displayName = user.displayName;
-        _thumbUrl = user.thumbUrl;
         print('Successfully loaded cache.');
         return true;
       }
@@ -85,79 +92,78 @@ class Repository  {
     return false;
   }
 
-  Future<AuthStatus> authenticate() async {
-    print('Authenticating user....');
-    //AuthStatus status = enumFromString(await sharedPrefs.getUserAuthStatus());
-    AuthStatus status;
-
-      print('a');
-      String token = await getUserAuthToken();
-      if (token == null) {
-        print('b');
-        status = AuthStatus.notSignedIn;
-      }
-      else {
-        //First, save into cache
-        await sharedPrefs.updateUserAuthToken(token);
-        print('c');
-        String publicId = await getUserPublicId(token);
-        if(publicId == null){
-          status = AuthStatus.incompleteRegistration;
-        } else {
-          status = AuthStatus.signedIn;
-          await sharedPrefs.updateUserPublicId(publicId);
-        }
-//        status =
-//        (publicId == null) ? AuthStatus.incompleteRegistration : AuthStatus
-//            .signedIn;
-      }
-
-    print('Authenticate result: ${status.toString()}');
-    return status;
-  }
+//  Future<AuthStatus> authenticate() async {
+//    print('Authenticating user....');
+//    //AuthStatus status = enumFromString(await sharedPrefs.getUserAuthStatus());
+//    AuthStatus status;
+//
+//      print('a');
+//      String token = await getUserAuthToken();
+//      if (token == null) {
+//        print('b');
+//        status = AuthStatus.notSignedIn;
+//      }
+//      else {
+//        //First, save into cache
+//        await sharedPrefs.updateUserAuthToken(token);
+//        print('c');
+//        String publicId = await getUserPublicId(token);
+//        if(publicId == null){
+//          status = AuthStatus.incompleteRegistration;
+//        } else {
+//          status = AuthStatus.signedIn;
+//          await sharedPrefs.updateUserPublicId(publicId);
+//        }
+////        status =
+////        (publicId == null) ? AuthStatus.incompleteRegistration : AuthStatus
+////            .signedIn;
+//      }
+//
+//    print('Authenticate result: ${status.toString()}');
+//    return status;
+//  }
 
   Future<String> getUserAuthToken() async {
-    if (_token == null) {
-      String token = await sharedPrefs.getUserAuthToken();
-      print('token: $token');
-      if (token == null)
-        token = await auth.currentUser();
-      print('token2: $token');
-      _token = token;
-    }
-    return _token;
+    String token;
+    token = await sharedPrefs.getUserAuthToken();
+    if (token == null) token = await auth.currentUser();
+
+    return token;
   }
 
   Future<String> getUserPublicId(String token) async {
-    if (_publicId == null) {
-      String publicId = await sharedPrefs.getUserPublicId();
-      print('sharedPrefs: $publicId');
-      if (publicId == null)
-        publicId = await network.getPublicId(token);
-      _publicId = publicId;
+    String publicId = await sharedPrefs.getUserPublicId();
+    print('sharedPrefs: $publicId');
+    if (publicId == null){
+      publicId = await network.getPublicId(token);
+      print('publicId networkFetch: $publicId');
     }
-    print('publicId networkFetch: $_publicId');
-    return _publicId;
+    return publicId;
   }
 
-  Future<String> getUserDisplayName(){
-
+  Future<String> getUserDisplayName() async {
+    String name = await sharedPrefs.getUserDisplayName();
   }
 
   Future finishRegistration(String publicId, String displayName) async {
-    await network.registerPublicId(await getUserAuthToken(), publicId);
-    await network.updateUserInfo(
-        {UserData.kPublicId: publicId, UserData.kDisplayName: displayName},
-        publicId);
-    //Update cache
+    try {
+      await network.registerPublicId(await getUserAuthToken(), publicId);
+      await network.updateUserInfo(
+          {UserData.kPublicId: publicId, UserData.kDisplayName: displayName},
+          publicId);
 
-    await database.insert(UserData(publicId,displayName,null));
+      //Update cache
+      await database.insert(UserData(publicId, displayName, null));
+//      return true;
+    } catch(e) {
+      throw Exception(e.toString());
+    }
   }
 
-  ///TEMPORARY ONLY.
-  String getUserPublicIdFromMemory() {
-    return _publicId;
-  }
+//  ///TEMPORARY ONLY.
+//  String getUserPublicIdFromMemory() {
+//    return _publicId;
+//  }
 
 
   void initSubscriptions() {
@@ -211,14 +217,14 @@ class Repository  {
   void onProfileUpdate(Event event) async {
     var val = event.snapshot.value;
     print('onProfileUpdate: $val');
-    switch (event.snapshot.key) {
-      case "thumbUrl":
-        _thumbUrl = val;
-        break;
-      case "displayName":
-        _displayName = val;
-        break;
-    }
+//    switch (event.snapshot.key) {
+//      case "thumbUrl":
+//        _thumbUrl = val;
+//        break;
+//      case "displayName":
+//        _displayName = val;
+//        break;
+//    }
 
 //    notifyListeners();
   }

@@ -1,6 +1,5 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/data/repository.dart';
 
 class AddContactScreen extends StatefulWidget {
 //  final String userPublicId;
@@ -25,12 +24,12 @@ class AddContactScreenState extends State<AddContactScreen> {
 
   }
 
-  void init(){
-    Repository repo = Repository.get();
-    repo.getUserAuthToken().then((token) async {
-      _publicId = await repo.getUserPublicId(token);
-    });
-  }
+//  void init(){
+//    Repository repo = Repository.get();
+//    repo.getUserAuthToken().then((token) async {
+//      _publicId = await repo.getUserPublicId(token);
+//    });
+//  }
 
   @override
   Widget build(BuildContext context) {

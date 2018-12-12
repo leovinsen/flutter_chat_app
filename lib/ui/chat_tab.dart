@@ -1,6 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/data/repository.dart';
+import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/model/chat_room_data.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
 import 'package:flutter_chat_app/ui/chat_screen.dart';
@@ -106,9 +106,9 @@ class ChatTab extends StatelessWidget {
   }
 
   String getContactPublicId(BuildContext context, int index){
-//    AppData appData = AppData.of(context);
+    AppData appData = AppData.of(context);
     List s = List.from(chatModels[index].allMembersPublicId)
-      ..remove(Repository.get().getUserPublicIdFromMemory());
+      ..remove(appData.publicId);
     return s.first;
   }
 
@@ -120,16 +120,16 @@ class ChatTab extends StatelessWidget {
   }
 
   void handleClick(BuildContext context, int index) {
-//    AppData appData = AppData.of(context);
+    AppData appData = AppData.of(context);
     String contactPublicId = getContactPublicId(context, index);
-    var repo = Repository.get();
+//    var repo = Repository.get();
 //    print(appData.contactsData);
-    UserData contactModel = repo.contactsData.singleWhere((contactModel){
+    UserData contactModel = appData.contactsData.singleWhere((contactModel){
       return contactModel.publicId == contactPublicId;
     });
 
     Navigator.push(context, MaterialPageRoute(
-        builder: (context) => ChatScreen(userPublicId: repo.getUserPublicIdFromMemory(), contactModel: contactModel, chatUID: chatModels[index].chatUID, ))
+        builder: (context) => ChatScreen(userPublicId: appData.publicId, contactModel: contactModel, chatUID: chatModels[index].chatUID, ))
     );
 
   }

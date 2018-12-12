@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/data/repository.dart';
 import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/ui/add_contact_screen.dart';
 import 'package:flutter_chat_app/ui/chat_tab.dart';
@@ -23,8 +22,8 @@ class _HomePageNewState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    Repository.get().initSubscriptions();
-//    appData = AppData.of(context);
+//    Repository.get().initSubscriptions();
+    appData = AppData.of(context);
 //    appData.initSubscriptions();
   }
 
@@ -45,16 +44,6 @@ class _HomePageNewState extends State<HomePage> {
               title: Text('Chat App'),
               actions: <Widget>[
                 IconButton(
-                  icon: Icon(Icons.refresh),
-                  onPressed: () {
-                    setState(() {
-                      Repository.get().contactsData.forEach((user) {
-                        print(user.toString());
-                      });
-                    });
-                  },
-                ),
-                IconButton(
                   icon: Icon(Icons.person_add),
                   onPressed: addContact,
                 ),
@@ -62,8 +51,12 @@ class _HomePageNewState extends State<HomePage> {
                 IconButton(
                   icon: Icon(Icons.exit_to_app),
                   onPressed: () {
-                    Repository.get().cancelSubscriptions();
-                    Repository.get().signOut();
+
+                    ///TODO : FIX SIGN OUT
+                    print('signout plceholder');
+                    model.signOut();
+//                    Repository.get().cancelSubscriptions();
+//                    Repository.get().signOut();
                   },
                 )
               ],
@@ -79,11 +72,11 @@ class _HomePageNewState extends State<HomePage> {
 
             body: TabBarView(
               children: <Widget>[
-                ChatTab(chatModels: Repository.get().chatRoomData,
+                ChatTab(chatModels: model.chatRoomData,
 //                    userPublicId: model.userPublicId
                 ),
-                ContactsTab(contacts: Repository.get().contactsData,
-                    userPublicId: Repository.get().getUserPublicIdFromMemory()),
+                ContactsTab(contacts: model.contactsData,
+                    userPublicId: appData.publicId ),
                 ProfileScreen(appData: model)
               ],
             ),

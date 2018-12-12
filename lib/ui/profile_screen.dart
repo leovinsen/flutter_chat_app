@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/data/repository.dart';
 import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/ui/chat_editor.dart';
 import 'package:flutter_chat_app/widgets/circular_profile_image.dart';
 import 'package:flutter_chat_app/widgets/rounded_camera_button.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:scoped_model/scoped_model.dart';
 
 class ProfileScreen extends StatefulWidget {
   final AppData appData;
@@ -25,10 +25,11 @@ class ProfileScreenState extends State<ProfileScreen> {
   //bool _uploading = false;
 
   Future _pickImage(ImageSource imgSource) async {
+    AppData data = AppData.of(context);
     if(imgSource == null) return;
 
     //createDialog(context);
-    String publicId = Repository.get().getUserPublicIdFromMemory();
+    String publicId = data.publicId;
     File imageFile = await ImagePicker.pickImage(source: imgSource, maxWidth: 400, maxHeight: 400);
     StorageReference ref =
     FirebaseStorage.instance.ref().child(publicId).child("profile_picture.jpg");
@@ -69,29 +70,33 @@ class ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        color: Colors.grey.shade100,
-        child: ListView(
-          shrinkWrap: false,
-          children: <Widget>[
-            profilePicture(),
-            publicIdContainer(context),
-            displayNameContainer(context),
-          ],
-        )
+    return ScopedModelDescendant<AppData>(
+      builder: (_, child, model) {
+        return Container(
+            color: Colors.grey.shade100,
+            child: ListView(
+              shrinkWrap: false,
+              children: <Widget>[
+                profilePicture(model),
+                publicIdContainer(context, model),
+                displayNameContainer(context, model),
+              ],
+            )
+        );
+      }
     );
   }
 
 
-  Widget profilePicture(){
+  Widget profilePicture(AppData data){
     return Padding(
       padding: const EdgeInsets.all(30.0),
       child: Stack(
           children: <Widget>[
             CircularNetworkProfileImage(
               size: 300.0,
-              url: Repository.get().thumbUrl,
-              publicId: Repository.get().getUserPublicIdFromMemory(),
+              url: null,
+              publicId: data.publicId,
             ),
             Positioned(
               right: 20.0,
@@ -104,24 +109,24 @@ class ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Container publicIdContainer(BuildContext context){
+  Container publicIdContainer(BuildContext context, AppData data){
     return Container(
         alignment: Alignment.center,
         child: ListTile(
           title: Text('Public ID'),
-          subtitle: Text(Repository.get().getUserPublicIdFromMemory(), style: blueSubtitle(context)),
+          subtitle: Text(data.publicId, style: blueSubtitle(context)),
         ),
         decoration: whiteBoxDecoration()
     );
   }
 
-  Container displayNameContainer(BuildContext context){
+  Container displayNameContainer(BuildContext context, AppData data){
     return Container(
       alignment: Alignment.center,
         child: ListTile(
           title: Text('Display Name'),
-          subtitle: Text(Repository.get().displayName, style: blueSubtitle(context),),
-          trailing: IconButton(icon: Icon(Icons.edit), color: Theme.of(context).primaryColor, onPressed: () =>  _openNameEditor()),
+          subtitle: Text(data.displayName, style: blueSubtitle(context),),
+          trailing: IconButton(icon: Icon(Icons.edit), color: Theme.of(context).primaryColor, onPressed: () =>  _openNameEditor(data)),
         ),
       decoration: whiteBoxDecoration(),
     );
@@ -143,8 +148,8 @@ class ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _openNameEditor() async {
-    String originalName = Repository.get().displayName;
+  void _openNameEditor(AppData data) async {
+    String originalName = data.displayName;
 
     final String results = await
     Navigator.of(context).push(
@@ -153,7 +158,7 @@ class ProfileScreenState extends State<ProfileScreen> {
 
     if(results != null && results.isNotEmpty && results != originalName){
       FirebaseDatabase db = FirebaseDatabase.instance;
-      db.reference().child('usersInfo/${Repository.get().getUserPublicIdFromMemory()}').update({'displayName' : results });
+      db.reference().child('usersInfo/${data.publicId}').update({'displayName' : results });
     }
   }
 

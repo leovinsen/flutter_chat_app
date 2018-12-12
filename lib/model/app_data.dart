@@ -1,6 +1,126 @@
+import 'dart:async';
+
+import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/data/repository.dart';
+import 'package:flutter_chat_app/model/chat_room_data.dart';
+import 'package:flutter_chat_app/model/user_data.dart';
 import 'package:scoped_model/scoped_model.dart';
 
+enum AuthStatus {
+  notSignedIn,
+  incompleteRegistration,
+  signedIn,
+}
+
+AuthStatus enumFromString(String str){
+  return AuthStatus.values.firstWhere((elem) => elem.toString() == str, orElse: ()=> null);
+}
+
 class AppData extends Model {
+
+  Repository repo;
+  bool ready = false;
+
+  AuthStatus _status;
+  AuthStatus get status => _status;
+
+  List<StreamSubscription<Event>> _chatRoomSubs = [];
+  StreamSubscription<Event> _onNewContactsSub;
+  StreamSubscription<Event> _onNewChatSub;
+  StreamSubscription<Event> _onProfileUpdate;
+
+
+  String _publicId;
+  String _token;
+  String _thumbUrl;
+  String _displayName;
+
+
+  String get publicId => _publicId;
+  String get thumbUrl => _thumbUrl;
+
+  String get displayName => _displayName;
+
+
+  List<UserData> _contactsData = [];
+  List<ChatRoomData> _chatRoomsData = [];
+
+  List<UserData> get contactsData => _contactsData;
+
+  List<ChatRoomData> get chatRoomData => _chatRoomsData;
+
+  AppData(){
+    initialize();
+  }
+
+  Future initialize() async {
+    repo = Repository();
+    await repo.init();
+    _token = await repo.getUserAuthToken();
+    if(_token != null) {
+      _publicId = await repo.getUserPublicId(_token);
+      if(_publicId != null){
+        _displayName = await repo.getUserDisplayName();
+        print('displayName from repo: $_displayName');
+        _status = AuthStatus.signedIn;
+      } else {
+        _status = AuthStatus.incompleteRegistration;
+      }
+
+    } else {
+      _status = AuthStatus.notSignedIn;
+    }
+    ready = true;
+    notifyListeners();
+  }
+
+  Future<bool> finishRegistration(String publicId, String displayName) async {
+    try {
+      await repo.finishRegistration(publicId, displayName);
+      _publicId = publicId;
+      _displayName = displayName;
+      notifyListeners();
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
+  Future signOut() async {
+    await repo.signOut();
+    _status = AuthStatus.notSignedIn;
+    _contactsData.clear();
+    _chatRoomsData.clear();
+    _publicId = null;
+    _displayName = null;
+    _thumbUrl = null;
+    notifyListeners();
+  }
+
+
+  cleanup() {
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //  final FirebaseDatabase _db = FirebaseDatabase.instance;
 //
 //  List<StreamSubscription<Event>> _chatRoomSubs = [];
@@ -171,14 +291,7 @@ class AppData extends Model {
 //    return _db.reference().child('chats/$chatUID').onValue.listen(fn);
 //  }
 //
-////  cleanup() {
-////    _contactsData.clear();
-////    _chatRoomsData.clear();
-////    _userPublicId = null;
-////    _userDisplayName = null;
-////    _userThumbUrl = null;
-////    notifyListeners();
-////  }
+
 //
-//  static AppData of(BuildContext context) => ScopedModel.of<AppData>(context);
+  static AppData of(BuildContext context) => ScopedModel.of<AppData>(context);
 }

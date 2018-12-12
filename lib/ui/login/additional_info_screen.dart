@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/data/repository.dart';
+import 'package:flutter_chat_app/model/app_data.dart';
 
 class AdditionalInfoScreen extends StatefulWidget {
-  final String _authToken;
-  final Function _refresh;
-  AdditionalInfoScreen(this._authToken, this._refresh);
+//  final String _authToken;
+//  final Function _refresh;
+//  AdditionalInfoScreen(this._authToken, this._refresh);
   @override
   _AdditionalInfoScreenState createState() => _AdditionalInfoScreenState();
 }
@@ -89,24 +89,21 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
         setState(() {
           _loading = true;
         });
+        AppData model = AppData.of(context);
 
-        Repository.get().finishRegistration(_publicId, _displayName).then((a){
-          Repository.get().authenticate();
-          if(mounted) setState(() {
+        await model.finishRegistration(_publicId, _displayName);
+        if (mounted) {
+          setState(() {
             _loading = false;
           });
-        });
-
-
-
+        }
         //Create a record in UsersInfo which contains user's personal information
-      } catch (e){
+      } catch (e) {
         Scaffold.of(context).showSnackBar(
-          SnackBar(content: Text('ERROR caught'))
+            SnackBar(content: Text('ERROR caught'))
         );
         print(e);
       }
-
     }
   }
 

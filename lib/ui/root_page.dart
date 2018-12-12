@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/data/repository.dart';
+import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/model/auth.dart';
 import 'package:flutter_chat_app/ui/home_page.dart';
 import 'package:flutter_chat_app/ui/login/additional_info_screen.dart';
 import 'package:flutter_chat_app/ui/login/login_page.dart';
+import 'package:scoped_model/scoped_model.dart';
 
 
 
@@ -24,33 +25,33 @@ class _RootPageState extends State<RootPage> {
   @override
   initState() {
     super.initState();
-    init();
+//    init();
   }
+//
+//  init() async {
+//
+//     if(await Repository.get().loadUserInfo()){
+//      _authStatus = AuthStatus.signedIn;
+//      isAuthenticating = false;
+//     } else {
+//       authenticate();
+//     }
+//  }
 
-  init() async {
-
-     if(await Repository.get().loadCache()){
-      _authStatus = AuthStatus.signedIn;
-      isAuthenticating = false;
-     } else {
-       authenticate();
-     }
-  }
-
-  authenticate() async {
-    Repository.get().authenticate().then((status){
-      setState(() {
-        _authStatus = status;
-        isAuthenticating = false;
-      });
-    });
-  }
+//  authenticate() async {
+//    Repository.get().authenticate().then((status){
+//      setState(() {
+//        _authStatus = status;
+//        isAuthenticating = false;
+//      });
+//    });
+//  }
 
   void _signIn() {
     setState(() {
       isAuthenticating = true;
     });
-    authenticate();
+//    authenticate();
   }
 
   void updateAuthStatus(AuthStatus status){
@@ -70,26 +71,51 @@ class _RootPageState extends State<RootPage> {
 
   @override
   Widget build(BuildContext context) {
-    print('calling build ROOT_PAGE');
-    if (isAuthenticating) {
-      return _loadingScreen();
-    } else {
-      switch (_authStatus) {
-        case AuthStatus.notSignedIn:
-          return LoginPage(
-            //auth: auth,
-            onSignIn: _signIn,
-          );
+    return ScopedModelDescendant<AppData>(
+      builder: (context, child, model) {
+        if (model.ready) {
+          switch (model.status) {
+            case AuthStatus.notSignedIn:
+              return LoginPage(
+                onSignIn: _signIn,
+              );
 
-        case AuthStatus.incompleteRegistration:
-          return AdditionalInfoScreen(Repository.get().getUserPublicIdFromMemory(), authenticate);
-        case AuthStatus.signedIn:
-          //AppData.of(context).initUserModel(_publicId);
-          return HomePage(
-            onSignOut: () => _signOut(),
-          );
+            case AuthStatus.incompleteRegistration:
+              return AdditionalInfoScreen();
+            case AuthStatus.signedIn:
+              return HomePage(
+                onSignOut: () => _signOut(),
+              );
+            default:
+              print('null');
+              return _loadingScreen();
+          }
+        } else {
+          return _loadingScreen();
+        }
       }
-    }
+    );
+
+//    print('calling build ROOT_PAGE');
+//    if (isAuthenticating) {
+//      return _loadingScreen();
+//    } else {
+//      switch (_authStatus) {
+//        case AuthStatus.notSignedIn:
+//          return LoginPage(
+//            //auth: auth,
+//            onSignIn: _signIn,
+//          );
+//
+//        case AuthStatus.incompleteRegistration:
+//          return AdditionalInfoScreen(Repository.get().getUserPublicIdFromMemory(), authenticate);
+//        case AuthStatus.signedIn:
+//          //AppData.of(context).initUserModel(_publicId);
+//          return HomePage(
+//            onSignOut: () => _signOut(),
+//          );
+//      }
+//    }
   }
 
   Widget _loadingScreen() {
