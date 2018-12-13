@@ -54,50 +54,88 @@ class AppData extends Model {
     initialize();
   }
 
+  Future refreshData() async {
+
+  }
+
   Future initialize() async {
     repo = Repository();
+    ///Initialize Repository
     await repo.init();
+
+    ///Authenticate user
     _token = await repo.getUserAuthToken();
+
+    ///User authenticated
     if(_token != null) {
+      ///Check if he/she has registered a public Id (which is compulsory)
       _publicId = await repo.getUserPublicId(_token);
+      ///If not null, then he/she has registered one
       if(_publicId != null){
+        ///Now get the display name
         _displayName = await repo.getUserDisplayName();
         print('displayName from repo: $_displayName');
+        ///User is signedIn
         _status = AuthStatus.signedIn;
+        ///Now load cached data:
+        ///User chats, user contacts, user profile
+        await _loadCache();
       } else {
+        ///publicId is not found, therefore he/she has to register one
         _status = AuthStatus.incompleteRegistration;
       }
 
     } else {
+      ///Token for user is not found. Therefore not signed in
       print('Auth.currentUser() returns null. User is not signed in');
       _status = AuthStatus.notSignedIn;
     }
+
     ready = true;
     notifyListeners();
   }
 
+  Future _loadCache() async {
+    try {
+      _contactsData = await repo.loadContacts();
+      print('Contacts Loaded.');
+      _chatRoomsData = await repo.loadChatRooms();
+    } catch (e){
+      print(e.toString());
+    }
+  }
 
   ///Called when user signs in through Login Page
-  Future signIn(String email, String password){
-    ///Do Error handling, rseuslt message etc here
-    repo.signIn(email, password);
+  Future signIn(String email, String password) async {
+    ///Do Error handling, result message etc here
+    String token = await repo.signIn(email, password);
+    String publicId = await repo.getUserPublicId(token);
+    if(publicId == null){
+      _status = AuthStatus.incompleteRegistration;
+    } else {
+      _status = AuthStatus.signedIn;
+      _publicId = publicId;
+    }
+    notifyListeners();
   }
 
 
   ///Called when user registers a new account in LoginPage
-  Future<bool> registerNew(String email, String password) async {
+  Future<void> registerNew(String email, String password) async {
     ///Auth Status etc
-    ///Do Error handling, rseuslt message etc here
-    String token = await repo.registerNewAccount(email, password);
-    return true;
+    ///Do Error handling, result message etc here
+    await repo.registerNewAccount(email, password);
+    _status = AuthStatus.incompleteRegistration;
+    notifyListeners();
   }
 
   ///Called when user registers a publicID and Display Name in AdditionalInfoScreen
-  Future<bool> finishRegistration(String publicId, String displayName) async {
+  Future finishRegistration(String publicId, String displayName) async {
     try {
       await repo.finishRegistration(publicId, displayName);
       _publicId = publicId;
       _displayName = displayName;
+      _status = AuthStatus.signedIn;
       notifyListeners();
     } catch (e) {
       print(e.toString());
@@ -127,13 +165,37 @@ class AppData extends Model {
 
   ///Function that is called when a new chat room is found in user's chat rooms branch
   void getChatRoomData(Event event) async {
-    //Chat Room ID
-    String chatUID = event.snapshot.key;
+    String chatRoomId = event.snapshot.key;
 
-    _chatRoomsData.add(await repo.getChatRoom(chatUID));
-    _chatRoomSubs.add( repo.newMessagesListener(chatUID, updateLastMessageOnChatRoom));
+    _chatRoomsData.add(await repo.getChatRoom(chatRoomId));
+    _chatRoomSubs.add( repo.newMessagesListener(chatRoomId, updateLastMessageOnChatRoom));
     notifyListeners();
 
+  }
+
+  ///TODO: Add enum for "ContactAddedAlready" and "ContactExists"
+  Future<bool> doesContactExist (String publicId) async{
+    ///First check if user is already in contact list
+    UserData user = _contactsData.singleWhere((user) => user.publicId == publicId, orElse: ()=> null);
+    ///If null, then user has not been added, now check if there exists such user
+    if(user ==null) {
+      ///Check online or from database
+      user = await repo.getUserDataFor(publicId);
+      ///If null, then not found
+      if (user ==null){
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  Future addContact(String contactId) async{
+    ///If successfully added, now add to memory
+    if(await repo.addContact(_publicId, contactId) == 1){
+      _contactsData.add(await repo.getUserDataFor(contactId));
+      notifyListeners();
+    }
   }
 
   ///TODO: FIX THIS
@@ -173,7 +235,7 @@ class AppData extends Model {
     String contactId = event.snapshot.key;
     print('Adding contact named $contactId');
     _contactsData.add(await repo.getUserDataFor(contactId));
-
+    notifyListeners();
   }
 
   void cancelSubscriptions() {

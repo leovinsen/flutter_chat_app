@@ -1,3 +1,5 @@
+
+import 'package:flutter_chat_app/model/chat_room_data.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -6,7 +8,10 @@ class CacheDatabase{
 
 //  static final CacheDatabase _bookDatabase = new CacheDatabase._internal();
 
-  final String tableName = "users_info";
+  final String tableUsersInfo = "users_info";
+  final String tableUserContacts = "user_contacts";
+  final String tableUserChats = "user_chats";
+  final String colPublicId = "publicId";
 
   Database sqlDb;
 
@@ -35,11 +40,24 @@ class CacheDatabase{
         onCreate: (Database db, int version) async {
           // When creating the db, create the table
           await db.execute('''
-              CREATE TABLE $tableName (
+              CREATE TABLE $tableUsersInfo (
                   ${UserData.kPublicId} TEXT PRIMARY KEY NOT NULL,
                   ${UserData.kDisplayName} TEXT NOT NULL,
                   ${UserData.kThumbUrl} TEXT)
                   ''');
+          await db.execute('''
+            CREATE TABLE $tableUserChats (
+              ${ChatRoomData.kChatId} TEXT PRIMARY KEY NOT NULL,
+              ${ChatRoomData.kAllMembersPublicId} TEXT NOT NULL,
+              ${ChatRoomData.kAllMembersDisplayName} TEXT NOT NULL,
+              ${ChatRoomData.kLastMessageSentId} TEXT NOT NULL,
+              ${ChatRoomData.kLastMessageSent} TEXT NOT NULL,
+              ${ChatRoomData.kLastMessageTime}  INTEGER NOT NULL)
+          ''');
+          await db.execute('''
+            CREATE TABLE $tableUserContacts (
+               $colPublicId TEXT PRIMARY NOT NULL
+          ''');
         });
     didInit = true;
     print('SQLite database init done');
@@ -47,7 +65,7 @@ class CacheDatabase{
 
   Future<UserData> getUserData(String publicId) async {
     var db = await _getDb();
-    List<Map> maps = await db.query(tableName,
+    List<Map> maps = await db.query(tableUsersInfo,
         columns: [UserData.kPublicId, UserData.kDisplayName, UserData.kThumbUrl],
         where: "${UserData.kPublicId} = ?",
         whereArgs: [publicId]);
@@ -57,16 +75,41 @@ class CacheDatabase{
     return null;
   }
 
-  Future<void> insert(UserData user) async {
+  Future<List> getAllContactsData() async {
+    var db = await _getDb();
+    List result = await db.query(tableUsersInfo, columns: [UserData.kPublicId, UserData.kDisplayName, UserData.kThumbUrl]);
+    return result;
+  }
+
+  Future<List> getAllChatRoomsData() async {
+    var db = await _getDb();
+    List result = await db.query(tableUserChats, columns: [
+      ChatRoomData.kChatId,
+      ChatRoomData.kAllMembersPublicId,
+      ChatRoomData.kAllMembersDisplayName,
+      ChatRoomData.kLastMessageSentId,
+      ChatRoomData.kLastMessageSent,
+      ChatRoomData.kLastMessageTime
+    ]);
+    return result;
+  }
+
+  Future<int> insertContact(String publicId) async {
+    var db = await _getDb();
+    return await db.insert(tableUserContacts, { colPublicId : publicId} );
+  }
+
+  Future<int> insertUser(UserData user) async {
 
     var db = await _getDb();
-    int val = await db.insert(tableName, user.toJson());
+    int val = await db.insert(tableUsersInfo, user.toJson());
     print('DB insert return value: $val');
+    return val;
   }
 
   Future<int> update(UserData user) async {
     var db = await _getDb();
-    return await db.update(tableName, user.toJson(),
+    return await db.update(tableUsersInfo, user.toJson(),
         where: "${UserData.kPublicId} = ?", whereArgs: [user.publicId]);
   }
 

@@ -85,33 +85,22 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
     final form = formKey.currentState;
     if (form.validate()) {
       form.save();
+
       try {
-        setState(() {
-          _loading = true;
-        });
+        setState(() =>  _loading = true);
         AppData model = AppData.of(context);
 
-        await model.finishRegistration(_publicId, _displayName);
+        await model.finishRegistration(_publicId.trim(), _displayName.trim());
         if (mounted) {
-          setState(() {
-            _loading = false;
-          });
+          setState(() => _loading = false);
         }
-        //Create a record in UsersInfo which contains user's personal information
+
       } catch (e) {
         Scaffold.of(context).showSnackBar(
-            SnackBar(content: Text('ERROR caught'))
+            SnackBar(content: Text('ERROR caught ' +e.toString()))
         );
         print(e);
       }
     }
   }
-
-//  Future<void> updateUsersInfo(UserData model){
-//    return _usersInfoRef.child(model.publicId).set(model.toJson());
-//  }
-//
-//  Future<void> createUserAssociation(String uniqueAuthId, String publicId){
-//    return _usersRef.child(uniqueAuthId).set(publicId);
-//  }
 }

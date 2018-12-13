@@ -5,6 +5,7 @@ import 'package:flutter_chat_app/model/user_data.dart';
 
 class NetworkHandler {
 
+  static final tag = 'NETWORK_HANDLER';
   static final NetworkHandler instance = NetworkHandler._internal();
   static final FirebaseDatabase _db = FirebaseDatabase.instance;
 
@@ -27,9 +28,14 @@ class NetworkHandler {
     return await _db.reference().child('$_branchUsers/$token').set(publicId);
   }
 
-  Future updateUserInfo(Map<String,String> newData, String publicId) async {
-    return await _db.reference().child('$_branchUsersInfo/$publicId').update(newData);
+  Future setUserInfo(String publicId, Map<String,String> newData) async {
+    return await _db.reference().child('$_branchUsersInfo/$publicId').set(newData);
   }
+
+  Future<void> addContact(String userId, String contactId) async {
+    return await _db.reference().child('$_branchUsersInfo/$userId/$contactId').set(true);
+  }
+
 
   Future<String> getChatMessage(String chatUID, String messageUID) async {
     DataSnapshot snapshot =
@@ -53,7 +59,7 @@ class NetworkHandler {
     return await _db.reference().child('$_branchChats/$chatId').once();
   }
 
-  StreamSubscription<Event> contactsCallback(
+  StreamSubscription<Event> newContactCallback(
       String publicId, Function(Event) fn) {
     return _db
         .reference()
@@ -81,8 +87,6 @@ class NetworkHandler {
     return _db.reference().child('$_branchUsersInfo/$publicId').onChildChanged.listen(fn);
   }
 
-  Future<DataSnapshot> getUserDataSnapshot(String publicId) async{
-    return await _db.reference().child('$_branchUsersInfo/$publicId').once();
-  }
+
 
 }

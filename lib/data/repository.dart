@@ -38,7 +38,28 @@ class Repository  {
   }
 
   Future<String> registerNewAccount(String email, String password) async{
-    return await auth.createUser(email, password);
+    String token = await auth.createUser(email, password);
+    sharedPrefs.updateUserAuthToken(token);
+    return token;
+  }
+
+  Future finishRegistration(String publicId, String displayName) async {
+    try {
+      //Register on Firebase
+      await network.registerPublicId(await getUserAuthToken(), publicId);
+      //Update the user's info on firebase
+      await network.setUserInfo(
+          publicId,
+          {UserData.kPublicId: publicId, UserData.kDisplayName: displayName}
+          );
+
+      //Update cache
+      //await database.insert(UserData(publicId, displayName, null));
+      await sharedPrefs.updateUserPublicId(publicId);
+      await sharedPrefs.updateUserDisplayName(displayName);
+    } catch(e) {
+      throw Exception(e.toString());
+    }
   }
 
   Future signIn(String email, String password){
@@ -80,49 +101,31 @@ class Repository  {
     return name;
   }
 
-  Future finishRegistration(String publicId, String displayName) async {
-    try {
-      await network.registerPublicId(await getUserAuthToken(), publicId);
-      await network.updateUserInfo(
-          {UserData.kPublicId: publicId, UserData.kDisplayName: displayName},
-          publicId);
-
-      //Update cache
-      await database.insert(UserData(publicId, displayName, null));
-      await sharedPrefs.updateUserPublicId(publicId);
-      await sharedPrefs.updateUserDisplayName(displayName);
-    } catch(e) {
-      throw Exception(e.toString());
-    }
+  Future<int> addContact(String userId, String contactId) async {
+    ///Add to firebase
+    await network.addContact(userId, contactId);
+    ///Save into database
+    return await database.insertContact(contactId);
   }
 
-//  void initSubscriptions() {
-//    getUserAuthToken().then((token) async {
-//      String publicId = await getUserPublicId(token);
-//      _onNewContactsSub =
-//          network.contactsCallback(publicId, retrieveContactInfo);
-//      _onNewChatSub = network.chatRoomCallback(publicId, onNewChat);
-//      _onProfileUpdate =
-//          network.profileUpdateListener(publicId, onProfileUpdate);
-//    });
-//  }
-//
-//  void cancelSubscriptions() {
-//    print("Cancelling Subscriptions");
-//    _onNewContactsSub.cancel();
-//    _onNewChatSub.cancel();
-//    _onProfileUpdate.cancel();
-//    _chatRoomSubs.forEach((sub) {
-//      sub.cancel();
-//    });
-//  }
+  Future<List<UserData>> loadContacts() async {
+    List list = await database.getAllContactsData();
+    List<UserData> users = [];
+    list.forEach((map) => list.add(UserData.fromMap(map)));
+    return users;
+  }
+
+  Future<List<ChatRoomData>> loadChatRooms() async {
+    List list = await database.getAllChatRoomsData();
+  }
+
 
   StreamSubscription<Event> newMessagesListener(String chatRoomId, Function fn)  {
     return network.newMessageCallback(chatRoomId, fn);
   }
 
   StreamSubscription<Event> newContactListener(String userId, Function fn) {
-    return network.contactsCallback(userId, fn);
+    return network.newContactCallback(userId, fn);
   }
 
   StreamSubscription<Event> newChatRoomListener(String userId, Function fn) {
@@ -133,6 +136,7 @@ class Repository  {
     return network.profileUpdateListener(userId, fn);
   }
 
+  ///Looks for user's profile by loading from cache or from firebase db
   Future<UserData> getUserDataFor(String publicId) async {
     //Check Cache first
 //    UserData user;
@@ -140,53 +144,15 @@ class Repository  {
 
     //If not found go online
 
-    UserData user = await network.getUserData(publicId);
-    database.update(user);
+    UserData user;
+    user = await database.getUserData(publicId);
 
+    if(user == null) {
+      user = await network.getUserData(publicId);
+      database.update(user);
+    }
     return user;
   }
-
-//  void onChatNewMessage(Event event) async {
-//    ChatRoomData chatRoom = _chatRoomsData.singleWhere((chatRoom) {
-//      return event.snapshot.key == chatRoom.chatUID;
-//    });
-//    if (chatRoom.lastMessageSentUID !=
-//        event.snapshot.value['lastMessageSent']) {
-//      String newMessage = await network.getChatMessage(
-//          chatRoom.chatUID, event.snapshot.value['lastMessageSent']);
-//      chatRoom.lastMessageSent = newMessage;
-//      //notifyListeners();
-//    } else {
-//      print('REPOSITORY, OnChatNewMessage ERROR: ' +
-//          event.snapshot.value['lastMessageSent']);
-//    }
-//  }
-
-//  void retrieveContactInfo(Event event) async {
-//    String contactId = event.snapshot.key;
-//    print('Adding contact named $contactId');
-//    UserData user = await database.getUserData(contactId);
-//    if (user == null) {
-//      DataSnapshot snapshot = await network.getUserDataSnapshot(contactId);
-//      user = UserData.fromSnapshot(snapshot);
-//    }
-//    _contactsData.add(user);
-//  }
-
-//  void onProfileUpdate(Event event) async {
-//    var val = event.snapshot.value;
-//    print('onProfileUpdate: $val');
-////    switch (event.snapshot.key) {
-////      case "thumbUrl":
-////        _thumbUrl = val;
-////        break;
-////      case "displayName":
-////        _displayName = val;
-////        break;
-////    }
-//
-////    notifyListeners();
-//  }
 
   Future<String> getChatMessage(String chatRoomId, String messageId ) async {
     return await network.getChatMessage(chatRoomId, messageId);
@@ -224,82 +190,6 @@ class Repository  {
       lastMessageSentTime: lastMessageSentTime,
     );
   }
-
-//  void onNewChat(Event event) async {
-//    //Chat Room ID
-//    String chatUID = event.snapshot.key;
-//
-//    var snapshot = await network.getChatRoomSnapshot(chatUID);
-//
-//    List allMembersPublicId =
-//    Map<String, bool>.from(snapshot.value['members']).keys.toList();
-//
-//    ///Note: Might need to add await to getUserDisplayName
-//    List<String> allMembersDisplayName = [];
-//
-//    for (String id in allMembersPublicId) {
-//      allMembersDisplayName.add(await network.getUserDisplayName(id));
-//    }
-//
-//    String lastMessageSentID = snapshot.value['lastMessageSent'];
-//    String lastMessageSent = await network.getChatMessage(
-//        chatUID, lastMessageSentID);
-//    int lastMessageSentTime = snapshot.value['lastMessageSentTime'];
-//
-//    _chatRoomsData.add(ChatRoomData(
-//      chatUID: chatUID,
-//      allMembersPublicId: allMembersPublicId,
-//      allMembers: allMembersDisplayName,
-//      lastMessageSentUID: lastMessageSentID,
-//      lastMessageSent: lastMessageSent,
-//      lastMessageSentTime: lastMessageSentTime,
-//    ));
-
-    // Future<UserData> getUserDataFor
-//
-//  ///Called when app is first started,
-//  ///determine whether user is signed in or not
-//  Future<AuthStatus> authenticate() async {
-//    String uniqueAuthId = await Auth.instance.currentUser();
-//    if(uniqueAuthId != null){
-//      var snapshot = await FirebaseDatabase.instance.reference().child('users/$uniqueAuthId').once();
-//      String publicId = snapshot.value;
-//      return publicId == null ? AuthStatus.incompleteRegistration : AuthStatus.signedIn;
-//    } else {
-//      return AuthStatus.notSignedIn;
-//    }
-//  }
-
-//  _uniqueAuthId = await getUserAuthToken();
-//  if(_uniqueAuthId != null) {
-//  _publicId = await getUserPublicId();
-//  _authStatus = _publicId == null ? AuthStatus.incompleteRegistration : AuthStatus.signedIn;
-//  } else {
-//  _authStatus =AuthStatus.notSignedIn;
-//  }
-
-//  Future<String> getUserAuthToken() async {
-//    //Get user Auth ID from local storage
-//    String uniqueAuthId = CacheHandler.getUserFirebaseAuthId();
-//
-//    //If not found, try online
-//    if (uniqueAuthId == null) uniqueAuthId = await auth.currentUser();
-//
-//    return uniqueAuthId;
-//  }
-
-//  ///TODO: Change to Future<String>
-//  Future<String> getUserPublicId() async {
-//    //String _publicId = CacheHandler.getUserPublicId();
-//
-//    if (_publicId == null){
-//      var db = FirebaseDatabase.instance;
-//      var usersBranch = db.reference().child('users');
-//      DataSnapshot snapshot = await usersBranch.child(_uniqueAuthId).once();
-//      _publicId = snapshot.value;
-//    }
-//    return _publicId ?? "";
-//  }
 
 
   }
