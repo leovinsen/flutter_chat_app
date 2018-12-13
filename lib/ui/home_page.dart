@@ -7,9 +7,6 @@ import 'package:flutter_chat_app/ui/profile_screen.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 class HomePage extends StatefulWidget {
-  final VoidCallback onSignOut;
-
-  HomePage({this.onSignOut});
   @override
   _HomePageNewState createState() => _HomePageNewState();
 }
@@ -22,19 +19,18 @@ class _HomePageNewState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-//    Repository.get().initSubscriptions();
     appData = AppData.of(context);
-//    appData.initSubscriptions();
+    appData.initSubscriptions();
   }
 
   @override
   void dispose() {
     super.dispose();
+    appData.cancelSubscriptions();
   }
 
   @override
   Widget build(BuildContext context) {
-    //appData.initSubscriptions();
     return ScopedModelDescendant<AppData>(
       builder: (context, child, model) {
         return DefaultTabController(
@@ -55,8 +51,6 @@ class _HomePageNewState extends State<HomePage> {
                     ///TODO : FIX SIGN OUT
                     print('signout plceholder');
                     model.signOut();
-//                    Repository.get().cancelSubscriptions();
-//                    Repository.get().signOut();
                   },
                 )
               ],
@@ -72,12 +66,9 @@ class _HomePageNewState extends State<HomePage> {
 
             body: TabBarView(
               children: <Widget>[
-                ChatTab(chatModels: model.chatRoomData,
-//                    userPublicId: model.userPublicId
-                ),
-                ContactsTab(contacts: model.contactsData,
-                    userPublicId: appData.publicId ),
-                ProfileScreen(appData: model)
+                ChatTab(),
+                ContactsTab(),
+                ProfileScreen()
               ],
             ),
           ),

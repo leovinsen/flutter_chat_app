@@ -69,24 +69,30 @@ class AppData extends Model {
       }
 
     } else {
+      print('Auth.currentUser() returns null. User is not signed in');
       _status = AuthStatus.notSignedIn;
     }
     ready = true;
     notifyListeners();
   }
 
-  Future<bool> registerNew(String email, String password) async {
 
-    ///Do Error handling, rseuslt message etc here
-    String token = await repo.registerNewAccount(email, password);
-    return true;
-  }
-
+  ///Called when user signs in through Login Page
   Future signIn(String email, String password){
     ///Do Error handling, rseuslt message etc here
     repo.signIn(email, password);
   }
 
+
+  ///Called when user registers a new account in LoginPage
+  Future<bool> registerNew(String email, String password) async {
+    ///Auth Status etc
+    ///Do Error handling, rseuslt message etc here
+    String token = await repo.registerNewAccount(email, password);
+    return true;
+  }
+
+  ///Called when user registers a publicID and Display Name in AdditionalInfoScreen
   Future<bool> finishRegistration(String publicId, String displayName) async {
     try {
       await repo.finishRegistration(publicId, displayName);
@@ -98,6 +104,9 @@ class AppData extends Model {
     }
   }
 
+  ///Called when user signs out from the application
+  ///This deletes all user data and cache
+  ///And also clears variables from memory
   Future signOut() async {
     await repo.signOut();
     _status = AuthStatus.notSignedIn;
@@ -109,46 +118,26 @@ class AppData extends Model {
     notifyListeners();
   }
 
+  void initSubscriptions() {
+    print("Initiating Subscriptions");
+    _onNewContactsSub = repo.newContactListener(publicId, retrieveContactInfo);
+    _onNewChatSub = repo.newChatRoomListener(publicId, getChatRoomData);
+    _onProfileUpdate = repo.onProfileUpdate(publicId, updateUserProfile);
+  }
 
-
-
-  void onNewChat(Event event) async {
+  ///Function that is called when a new chat room is found in user's chat rooms branch
+  void getChatRoomData(Event event) async {
     //Chat Room ID
     String chatUID = event.snapshot.key;
 
     _chatRoomsData.add(await repo.getChatRoom(chatUID));
-    _chatRoomSubs.add( repo.newMessagesListener(chatUID, onNewChatMessage));
+    _chatRoomSubs.add( repo.newMessagesListener(chatUID, updateLastMessageOnChatRoom));
     notifyListeners();
-
-//    var snapshot = await _db.reference().child('chats/$chatUID').once();
-//
-//    List allMembersPublicId =
-//        Map<String, bool>.from(snapshot.value['members']).keys.toList();
-//
-//    ///Note: Might need to add await to getUserDisplayName
-//    List<String> allMembersDisplayName = [];
-//
-//    for (String id in allMembersPublicId) {
-//      allMembersDisplayName.add(await getUserDisplayName(id));
-//    }
-//
-//    String lastMessageSentID = snapshot.value['lastMessageSent'];
-//    String lastMessageSent = await getChatMessage(chatUID, lastMessageSentID);
-//    int lastMessageSentTime = snapshot.value['lastMessageSentTime'];
-//
-//    _chatRoomsData.add(ChatRoomData(
-//      chatUID: chatUID,
-//      allMembersPublicId: allMembersPublicId,
-//      allMembers: allMembersDisplayName,
-//      lastMessageSentUID: lastMessageSentID,
-//      lastMessageSent: lastMessageSent,
-//      lastMessageSentTime: lastMessageSentTime,
-//    ));
 
   }
 
   ///TODO: FIX THIS
-  void onNewChatMessage(Event event) async {
+  void updateLastMessageOnChatRoom(Event event) async {
     ChatRoomData chatRoom = _chatRoomsData.singleWhere((chatRoom) {
       return event.snapshot.key == chatRoom.chatUID;
     });
@@ -166,7 +155,7 @@ class AppData extends Model {
     }
   }
 
-  void onProfileUpdate(Event event) async {
+  void updateUserProfile(Event event) async {
 
     var val = event.snapshot.value;
     switch(event.snapshot.key){
@@ -180,40 +169,11 @@ class AppData extends Model {
     notifyListeners();
   }
 
-//  Future<String> getChatMessage(String chatUID, String messageUID) async {
-//    DataSnapshot snapshot =
-//        await _db.reference().child('chatMessages/$chatUID/$messageUID').once();
-//    return snapshot.value['message'];
-//  }
-
-//  Future<String> getUserDisplayName(String publicId) async {
-//    DataSnapshot snapshot =
-//        await _db.reference().child('usersInfo/$publicId/displayName').once();
-//    return snapshot.value;
-//  }
-
-
-
   void retrieveContactInfo(Event event) async {
     String contactId = event.snapshot.key;
     print('Adding contact named $contactId');
     _contactsData.add(await repo.getUserDataFor(contactId));
 
-//
-//    DataSnapshot snapshot =
-//        await _db.reference().child('usersInfo/$contactId').once();
-  }
-
-
-
-  void initSubscriptions() {
-    print("Initiating Subscriptions");
-    repo.getUserAuthToken().then((token) async {
-      String publicId = await repo.getUserPublicId(token);
-      _onNewContactsSub = repo.newContactListener(publicId, retrieveContactInfo);
-      _onNewChatSub = repo.newChatRoomListener(publicId, onNewChat);
-      _onProfileUpdate = repo.onProfileUpdate(publicId, onProfileUpdate);
-    });
   }
 
   void cancelSubscriptions() {

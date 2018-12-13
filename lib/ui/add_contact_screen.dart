@@ -83,7 +83,7 @@ class AddContactScreenState extends State<AddContactScreen> {
     ///If user exists, value will be non-null
     if (snapshot.value != null) {
       await db.reference().child(
-          'usersContact/${_publicId}/$contactId').set(true);
+          'usersContact/$_publicId/$contactId').set(true);
       snackBar = SnackBar(
           content: Row(
             children: <Widget>[

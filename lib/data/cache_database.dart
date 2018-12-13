@@ -4,19 +4,19 @@ import 'package:sqflite/sqflite.dart';
 
 class CacheDatabase{
 
-  static final CacheDatabase _bookDatabase = new CacheDatabase._internal();
+//  static final CacheDatabase _bookDatabase = new CacheDatabase._internal();
 
   final String tableName = "users_info";
 
   Database sqlDb;
 
   bool didInit = false;
+//
+//  static CacheDatabase get() {
+//    return _bookDatabase;
+//  }
 
-  static CacheDatabase get() {
-    return _bookDatabase;
-  }
-
-  CacheDatabase._internal();
+//  CacheDatabase._internal();
 
   /// Use this method to access the database, because initialization of the database (it has to go through the method channel)
   Future<Database> _getDb() async{
@@ -28,6 +28,7 @@ class CacheDatabase{
   ///TODO: BUILD STRUCTURE OF SQFlite DATABASE
   Future _init() async {
     // Get a location using path_provider
+    print('Initializing SQLite database');
     var databasePath = await getDatabasesPath();
     String path = join(databasePath, "data.db");
     sqlDb = await openDatabase(path, version: 1,
@@ -41,6 +42,7 @@ class CacheDatabase{
                   ''');
         });
     didInit = true;
+    print('SQLite database init done');
   }
 
   Future<UserData> getUserData(String publicId) async {
@@ -68,6 +70,15 @@ class CacheDatabase{
         where: "${UserData.kPublicId} = ?", whereArgs: [user.publicId]);
   }
 
+  Future delete() async {
+    try {
+      var databasePath = await getDatabasesPath();
+      String path = join(databasePath, "data.db");
+      await deleteDatabase(path);
+    } catch (e) {
+      throw e;
+    }
+  }
 
   ///MORE FUNCTIONS COMING
 }

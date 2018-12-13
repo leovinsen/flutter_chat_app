@@ -20,53 +20,20 @@ import 'package:flutter_chat_app/model/user_data.dart';
 
 class Repository  {
 
-  //static final Repository _repo = Repository._internal();
-
   CacheDatabase database;
   CacheSharedPrefs sharedPrefs;
   NetworkHandler network;
   Auth auth;
 
-  List<StreamSubscription<Event>> _chatRoomSubs = [];
-  StreamSubscription<Event> _onNewContactsSub;
-  StreamSubscription<Event> _onNewChatSub;
-  StreamSubscription<Event> _onProfileUpdate;
-
-//  String _publicId;
-//  String _token;
-//  String _thumbUrl;
-//  String _displayName;
-//
-//  String get thumbUrl => _thumbUrl;
-//  String get displayName => _displayName;
-//
-//
-  List<UserData> _contactsData = [];
-  List<ChatRoomData> _chatRoomsData = [];
-
-  List<UserData> get contactsData => _contactsData;
-
-  List<ChatRoomData> get chatRoomData => _chatRoomsData;
-
-
-//  static Repository get() {
-//    return _repo;
-//  }
-
-//  Repository._internal() {
-//    database = CacheDatabase.get();
-//    sharedPrefs = CacheSharedPrefs.instance;
-//    auth = Auth.instance;
-//    network = NetworkHandler.instance;
-//  }
   Repository(){
-    database = CacheDatabase.get();
+    database = CacheDatabase();
     sharedPrefs = CacheSharedPrefs();
     auth = Auth.instance;
     network = NetworkHandler.instance;
   }
 
   Future init() async {
+    print('Initializing Repository');
     await sharedPrefs.init();
   }
 
@@ -81,60 +48,15 @@ class Repository  {
   Future signOut() async {
     auth.signOut().then((a) {
       sharedPrefs.destroy();
-      //Clear database
-      //Release subscriptions
+      database.delete();
+      print('Successfully signed out.');
     });
   }
-
-  Future<bool> loadUserInfo() async {
-    print('Loading Cache...');
-    String publicId = await sharedPrefs.getUserPublicId();
-    if(publicId != null) {
-      UserData user = await database.getUserData(publicId);
-      if (user != null) {
-        print('Successfully loaded cache.');
-        return true;
-      }
-    }
-    print('No data cached.');
-    return false;
-  }
-
-//  Future<AuthStatus> authenticate() async {
-//    print('Authenticating user....');
-//    //AuthStatus status = enumFromString(await sharedPrefs.getUserAuthStatus());
-//    AuthStatus status;
-//
-//      print('a');
-//      String token = await getUserAuthToken();
-//      if (token == null) {
-//        print('b');
-//        status = AuthStatus.notSignedIn;
-//      }
-//      else {
-//        //First, save into cache
-//        await sharedPrefs.updateUserAuthToken(token);
-//        print('c');
-//        String publicId = await getUserPublicId(token);
-//        if(publicId == null){
-//          status = AuthStatus.incompleteRegistration;
-//        } else {
-//          status = AuthStatus.signedIn;
-//          await sharedPrefs.updateUserPublicId(publicId);
-//        }
-////        status =
-////        (publicId == null) ? AuthStatus.incompleteRegistration : AuthStatus
-////            .signedIn;
-//      }
-//
-//    print('Authenticate result: ${status.toString()}');
-//    return status;
-//  }
-
   Future<String> getUserAuthToken() async {
     String token;
     token = await sharedPrefs.getUserAuthToken();
     if (token == null) {
+      print('User auth token not found in SharedPrefs');
       token = await auth.currentUser();
       sharedPrefs.updateUserAuthToken(token);
     }
@@ -224,32 +146,32 @@ class Repository  {
     return user;
   }
 
-  void onChatNewMessage(Event event) async {
-    ChatRoomData chatRoom = _chatRoomsData.singleWhere((chatRoom) {
-      return event.snapshot.key == chatRoom.chatUID;
-    });
-    if (chatRoom.lastMessageSentUID !=
-        event.snapshot.value['lastMessageSent']) {
-      String newMessage = await network.getChatMessage(
-          chatRoom.chatUID, event.snapshot.value['lastMessageSent']);
-      chatRoom.lastMessageSent = newMessage;
-      //notifyListeners();
-    } else {
-      print('REPOSITORY, OnChatNewMessage ERROR: ' +
-          event.snapshot.value['lastMessageSent']);
-    }
-  }
+//  void onChatNewMessage(Event event) async {
+//    ChatRoomData chatRoom = _chatRoomsData.singleWhere((chatRoom) {
+//      return event.snapshot.key == chatRoom.chatUID;
+//    });
+//    if (chatRoom.lastMessageSentUID !=
+//        event.snapshot.value['lastMessageSent']) {
+//      String newMessage = await network.getChatMessage(
+//          chatRoom.chatUID, event.snapshot.value['lastMessageSent']);
+//      chatRoom.lastMessageSent = newMessage;
+//      //notifyListeners();
+//    } else {
+//      print('REPOSITORY, OnChatNewMessage ERROR: ' +
+//          event.snapshot.value['lastMessageSent']);
+//    }
+//  }
 
-  void retrieveContactInfo(Event event) async {
-    String contactId = event.snapshot.key;
-    print('Adding contact named $contactId');
-    UserData user = await database.getUserData(contactId);
-    if (user == null) {
-      DataSnapshot snapshot = await network.getUserDataSnapshot(contactId);
-      user = UserData.fromSnapshot(snapshot);
-    }
-    _contactsData.add(user);
-  }
+//  void retrieveContactInfo(Event event) async {
+//    String contactId = event.snapshot.key;
+//    print('Adding contact named $contactId');
+//    UserData user = await database.getUserData(contactId);
+//    if (user == null) {
+//      DataSnapshot snapshot = await network.getUserDataSnapshot(contactId);
+//      user = UserData.fromSnapshot(snapshot);
+//    }
+//    _contactsData.add(user);
+//  }
 
 //  void onProfileUpdate(Event event) async {
 //    var val = event.snapshot.value;
