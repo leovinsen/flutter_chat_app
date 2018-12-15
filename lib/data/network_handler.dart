@@ -78,8 +78,14 @@ class NetworkHandler {
         .listen(fn);
   }
 
+//  StreamSubscription<Event> newMessageCallback(
+//      String chatUID, Function(Event) fn) {
+//    return _db.reference().child('chats/$chatUID').onValue.listen(fn);
+//  }
+//
   StreamSubscription<Event> newMessageCallback(
       String chatUID, Function(Event) fn) {
+    print('$tag: Callback for $_branchChats/$chatUID');
     return _db.reference().child('$_branchChats/$chatUID').onValue.listen(fn);
   }
 

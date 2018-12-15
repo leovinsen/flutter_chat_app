@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 
 class CircularNetworkProfileImage extends StatelessWidget {
   final double size;
-  final String url;
+  String url;
 
   ///publicId is used to ensure every hero has a unique tag
   final String publicId;
 
-  const CircularNetworkProfileImage({this.size, this.url, this.publicId})
+  CircularNetworkProfileImage({this.size, this.url, this.publicId})
       : assert(size != null),
-        assert(publicId != null);
+        assert(publicId != null){
+    url = url ?? "";
+  }
 
   @override
   Widget build(BuildContext context) {

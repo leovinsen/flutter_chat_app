@@ -25,6 +25,7 @@ class ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    print('${widget.userPublicId}');
   }
 
   @override
@@ -202,10 +203,6 @@ class ChatScreenState extends State<ChatScreen> {
   void dispose() {
     super.dispose();
   }
-
-
-  
-
 }
 
 enum MessageSender { user, contact }

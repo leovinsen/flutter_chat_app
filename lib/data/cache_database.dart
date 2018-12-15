@@ -6,6 +6,7 @@ import 'package:sqflite/sqflite.dart';
 
 class CacheDatabase{
 
+  final String tag = 'CACHE_DATABASE';
 //  static final CacheDatabase _bookDatabase = new CacheDatabase._internal();
 
   final String tableUsersInfo = "users_info";
@@ -56,7 +57,7 @@ class CacheDatabase{
           ''');
           await db.execute('''
             CREATE TABLE $tableUserContacts (
-               $colPublicId TEXT PRIMARY NOT NULL
+               $colPublicId TEXT PRIMARY KEY NOT NULL)
           ''');
         });
     didInit = true;

@@ -62,8 +62,10 @@ class Repository  {
     }
   }
 
-  Future signIn(String email, String password){
-    auth.signIn(email, password);
+  Future<String> signIn(String email, String password) async {
+    String token = await auth.signIn(email, password);
+    await sharedPrefs.updateUserAuthToken(token);
+    return token;
   }
 
   Future signOut() async {
@@ -111,7 +113,7 @@ class Repository  {
   Future<List<UserData>> loadContacts() async {
     List list = await database.getAllContactsData();
     List<UserData> users = [];
-    list.forEach((map) => list.add(UserData.fromMap(map)));
+    list.forEach((map) => users.add(UserData.fromMap(map)));
     return users;
   }
 

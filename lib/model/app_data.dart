@@ -109,6 +109,7 @@ class AppData extends Model {
   Future signIn(String email, String password) async {
     ///Do Error handling, result message etc here
     String token = await repo.signIn(email, password);
+
     String publicId = await repo.getUserPublicId(token);
     if(publicId == null){
       _status = AuthStatus.incompleteRegistration;
@@ -166,7 +167,7 @@ class AppData extends Model {
   ///Function that is called when a new chat room is found in user's chat rooms branch
   void getChatRoomData(Event event) async {
     String chatRoomId = event.snapshot.key;
-
+    print('AppData: chatRoomid is $chatRoomId');
     _chatRoomsData.add(await repo.getChatRoom(chatRoomId));
     _chatRoomSubs.add( repo.newMessagesListener(chatRoomId, updateLastMessageOnChatRoom));
     notifyListeners();

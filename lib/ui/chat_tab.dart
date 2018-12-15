@@ -20,13 +20,11 @@ class ChatTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return ScopedModelDescendant<AppData>(
       builder: (_, child, model){
-        List<ChatRoomData> chatRooms =  model.chatRoomData..sort((roomA, roomB){
-          return roomA.lastMessageSentTime.compareTo(roomB.lastMessageSentTime);
-        });
-
+        List<ChatRoomData> chatRooms = model.chatRoomData ?? [];
         return chatRooms.isEmpty
             ? _buildNoChatMessage()
             : _buildChatRooms(context, chatRooms, model);
+
 
 
       },
@@ -39,6 +37,11 @@ class ChatTab extends StatelessWidget {
   }
 
   Widget _buildChatRooms(BuildContext context, List<ChatRoomData> chatRooms, AppData model) {
+
+    chatRooms.sort((roomA, roomB){
+      return roomA.lastMessageSentTime.compareTo(roomB.lastMessageSentTime);
+    });
+
     return ListView.separated(
 
         itemCount: chatRooms.length,
@@ -150,6 +153,7 @@ class ChatTab extends StatelessWidget {
       return contactModel.publicId == contactPublicId;
     });
 
+    print('CHAT_TAB: Opening ChatScreen for $chatUID');
     Navigator.push(context, MaterialPageRoute(
         builder: (context) => ChatScreen(userPublicId: appData.publicId, contactModel: contactModel, chatUID: chatUID, ))
     );
