@@ -113,18 +113,23 @@ class Repository  {
     return name;
   }
 
-  Future<int> addContact(String userId, String contactId) async {
+  Future<bool> addContact(String userId, String contactId) async {
     ///Add to firebase
-    await network.addContact(userId, contactId);
+    if(await network.usernameExist(contactId)){
+      await network.addContact(userId, contactId);
+      return true;
+    }
+    return false;
     ///Save into database
-    return await database.insertContact(contactId);
   }
 
   Future<List<UserData>> loadContacts() async {
     List list = await database.getAllContactsData();
-    List<UserData> users = [];
-    list.forEach((map) => users.add(UserData.fromMap(map)));
-    return users;
+//    List<UserData> users = [];
+//    for (String id in list){
+//      users.add(await database.getUserData(id));
+//    }
+    return list;
   }
 
   Future<List<ChatRoomData>> loadChatRooms() async {
@@ -148,21 +153,16 @@ class Repository  {
     return network.profileUpdateListener(userId, fn);
   }
 
-  ///Looks for user's profile by loading from cache or from firebase db
-  Future<UserData> getUserDataFor(String publicId) async {
-    //Check Cache first
-//    UserData user;
-//    user = await database.getUserData(publicId);
+  ///Fetches the newest data from network
+  ///Then saves it into cache
+  Future<UserData> getUserDataFor(String publicId, bool isContact) async {
+    //Fetch from network
+    UserData user = await network.getUserData(publicId);
+    //Save into cache
+    int result = await database.update(user, isContact);
+    print('DATABASE_UPDATE RESULT: $result');
+    if (result == 0) await database.insertUser(user, isContact);
 
-    //If not found go online
-
-    UserData user;
-    user = await database.getUserData(publicId);
-
-    if(user == null) {
-      user = await network.getUserData(publicId);
-      database.update(user);
-    }
     return user;
   }
 

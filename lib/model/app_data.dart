@@ -13,6 +13,12 @@ enum AuthStatus {
   signedIn,
 }
 
+enum AddContact {
+  duplicateContact,
+  contactDoesNotExist,
+  success
+}
+
 AuthStatus enumFromString(String str){
   return AuthStatus.values.firstWhere((elem) => elem.toString() == str, orElse: ()=> null);
 }
@@ -56,10 +62,6 @@ class AppData extends Model {
     initialize();
   }
 
-  Future refreshData() async {
-
-  }
-
   Future initialize() async {
     repo = Repository();
     ///Initialize Repository
@@ -100,10 +102,13 @@ class AppData extends Model {
   Future _loadCache() async {
     try {
       _contactsData = await repo.loadContacts();
-      print('Contacts Loaded.');
-      _chatRoomsData = await repo.loadChatRooms();
+      print('${_contactsData.length} contacts Loaded.');
+      for (UserData contact in _contactsData){
+        print(contact.toString());
+      }
+      _chatRoomsData = await repo.loadChatRooms() ?? [];
     } catch (e){
-      print(e.toString());
+      print('$tag: ' + e.toString());
     }
   }
 
@@ -180,29 +185,36 @@ class AppData extends Model {
   }
 
   ///TODO: Add enum for "ContactAddedAlready" and "ContactExists"
-  Future<bool> doesContactExist (String publicId) async{
+  Future<AddContact> addContact(String contactId) async {
     ///First check if user is already in contact list
-    UserData user = _contactsData.singleWhere((user) => user.publicId == publicId, orElse: ()=> null);
+    UserData user = _contactsData.singleWhere((user) =>
+    user.publicId == contactId, orElse: () => null);
+
     ///If null, then user has not been added, now check if there exists such user
-    if(user ==null) {
-      ///Check online or from database
-      user = await repo.getUserDataFor(publicId);
-      ///If null, then not found
-      if (user ==null){
-        return false;
-      }
-      return true;
+    if (user == null) {
+      bool b = await repo.addContact(_publicId, contactId);
+      return b ? AddContact.success : AddContact.contactDoesNotExist;
+    } else {
+      return AddContact.duplicateContact;
     }
-    return false;
+//    if(user ==null) {
+//      ///Check online or from database
+////      user = await repo.getUserDataFor(publicId);
+//      ///If null, then not found
+//      if (user ==null){
+//        return false;
+//      }
+//      return true;
+//    }
+//    print('Contact is in your contacts list');
+//    return false;
   }
 
-  Future addContact(String contactId) async{
-    ///If successfully added, now add to memory
-    if(await repo.addContact(_publicId, contactId) == 1){
-      _contactsData.add(await repo.getUserDataFor(contactId));
-      notifyListeners();
-    }
-  }
+//  Future addContact(String contactId) async{
+//    ///If successfully added, now add to memory
+//
+//      print('Successfully added contact $contactId to firebase & db');
+//  }
 
   ///TODO: FIX THIS
   void updateLastMessageOnChatRoom(Event event) async {
@@ -240,7 +252,7 @@ class AppData extends Model {
   void retrieveContactInfo(Event event) async {
     String contactId = event.snapshot.key;
     print('Adding contact named $contactId');
-    _contactsData.add(await repo.getUserDataFor(contactId));
+    _contactsData.add(await repo.getUserDataFor(contactId, true));
     notifyListeners();
   }
 

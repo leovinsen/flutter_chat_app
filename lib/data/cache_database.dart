@@ -44,7 +44,8 @@ class CacheDatabase{
               CREATE TABLE $tableUsersInfo (
                   ${UserData.kPublicId} TEXT PRIMARY KEY NOT NULL,
                   ${UserData.kDisplayName} TEXT NOT NULL,
-                  ${UserData.kThumbUrl} TEXT)
+                  ${UserData.kThumbUrl} TEXT,
+                  isContact INTEGER DEFAULT 0)
                   ''');
           await db.execute('''
             CREATE TABLE $tableUserChats (
@@ -53,7 +54,7 @@ class CacheDatabase{
               ${ChatRoomData.kAllMembersDisplayName} TEXT NOT NULL,
               ${ChatRoomData.kLastMessageSentId} TEXT NOT NULL,
               ${ChatRoomData.kLastMessageSent} TEXT NOT NULL,
-              ${ChatRoomData.kLastMessageTime}  INTEGER NOT NULL)
+              ${ChatRoomData.kLastMessageTime} INTEGER NOT NULL)
           ''');
           await db.execute('''
             CREATE TABLE $tableUserContacts (
@@ -78,9 +79,18 @@ class CacheDatabase{
 
   Future<List> getAllContactsData() async {
     var db = await _getDb();
-    List result = await db.query(tableUsersInfo, columns: [UserData.kPublicId, UserData.kDisplayName, UserData.kThumbUrl]);
-    return result;
+    List result = await db.query(tableUsersInfo,
+        columns: [UserData.kPublicId, UserData.kDisplayName, UserData.kThumbUrl],
+        where: "isContact = ?",
+        whereArgs: [true]) ..toList();
+    return result.toList();
   }
+
+//  Future<List> getAllContacts() async {
+//    var db = await _getDb();
+//    List result = await db.query(tableUserContacts, columns: [colPublicId]);
+//    return result;
+//  }
 
   Future<List> getAllChatRoomsData() async {
     var db = await _getDb();
@@ -95,29 +105,35 @@ class CacheDatabase{
     return result;
   }
 
-  Future<int> insertContact(String publicId) async {
-    var db = await _getDb();
-    return await db.insert(tableUserContacts, { colPublicId : publicId} );
-  }
+//  Future<int> insertContact(String publicId) async {
+//    var db = await _getDb();
+//    print('Inserting Contact into DB');
+//    return await db.insert(tableUserContacts, { colPublicId : publicId} );
+//  }
 
-  Future<int> insertUser(UserData user) async {
+  Future<int> insertUser(UserData user, bool isContact) async {
 
     var db = await _getDb();
-    int val = await db.insert(tableUsersInfo, user.toJson());
+    Map<String,dynamic> map = {}..addAll(user.toJson())..addAll({'isContact' : isContact ? 1 : 0});
+    int val = await db.insert(tableUsersInfo,  map);
     print('DB insert return value: $val');
     return val;
   }
 
-  Future<int> update(UserData user) async {
+  Future<int> update(UserData user, bool isContact) async {
     var db = await _getDb();
-    return await db.update(tableUsersInfo, user.toJson(),
+    Map<String,dynamic> map = {}..addAll(user.toJson())..addAll({'isContact' : isContact ? 1 : 0});
+    return await db.update(tableUsersInfo, map,
         where: "${UserData.kPublicId} = ?", whereArgs: [user.publicId]);
   }
+
+
 
   Future delete() async {
     try {
       var databasePath = await getDatabasesPath();
       String path = join(databasePath, "data.db");
+      print('$tag: Deleting Database');
       await deleteDatabase(path);
     } catch (e) {
       throw e;

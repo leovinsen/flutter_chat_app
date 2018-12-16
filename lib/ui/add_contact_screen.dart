@@ -58,41 +58,67 @@ class AddContactScreenState extends State<AddContactScreen> {
   }
 
   Future _addContact(BuildContext context) async {
-    AppData data= AppData.of(context);
+    AppData data = AppData.of(context);
     setState(() {
       loading = true;
     });
     String contactId = _idFieldController.text;
-//    FirebaseDatabase db = FirebaseDatabase.instance;
-//    DataSnapshot snapshot = await db.reference()
-//        .child('usersInfo/$contactId')
-//        .once();
 
     SnackBar snackBar;
-    if(await data.doesContactExist(contactId)){
-      await data.addContact(contactId);
-      snackBar = SnackBar(
-          content: Row(
-            children: <Widget>[
-              Icon(Icons.check, color: Colors.green,),
-              SizedBox(width: 10.0,),
-              Text('User $contactId successfully added.')
-            ],
-          ),
-          duration: Duration(seconds: 2)
-      );
-    } else {
+    AddContact result = await data.addContact(contactId);
+    Icon icon;
+    String content;
+    switch (result) {
+      case AddContact.success:
+        icon = Icon(Icons.check, color: Colors.green);
+        content = 'User $contactId successfully added.';
+//        snackBar = SnackBar(
+//          content: Row(
+//            children: <Widget>[
+//              Icon(Icons.check, color: Colors.green,),
+//              SizedBox(width: 10.0,),
+//              Text()
+//            ],
+//          ),
+//          duration: Duration(seconds: 2)
+//      );
+        break;
+      case AddContact.duplicateContact:
+        icon = Icon(Icons.warning, color: Colors.yellow,);
+        content = 'User $contactId is already in your contacts';
+        break;
+      case AddContact.contactDoesNotExist:
+        icon = Icon(Icons.clear, color: Colors.red);
+        content = 'User $contactId is not found';
+        break;
+    }
+//    if(await data.doesContactExist(contactId)){
+//      await data.addContact(contactId);
+//
+//    } else {
+//
+//      snackBar = SnackBar(
+//        content: Row(
+//          children: <Widget>[
+//            Icon(Icons.warning, color: Colors.yellow,),
+//            SizedBox(width: 10.0,),
+//            Text('User $contactId not found.')
+//          ],
+//        ),
+//        duration: Duration(seconds: 2));
+//    }
 
-      snackBar = SnackBar(
+
+    snackBar = SnackBar(
         content: Row(
           children: <Widget>[
-            Icon(Icons.warning, color: Colors.yellow,),
+            icon,
             SizedBox(width: 10.0,),
-            Text('User $contactId not found.')
+            Text(content)
           ],
         ),
         duration: Duration(seconds: 2));
-    }
+
 
     setState(() {
       loading = false;

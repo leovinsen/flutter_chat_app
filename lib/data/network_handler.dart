@@ -39,7 +39,12 @@ class NetworkHandler {
   }
 
   Future<void> addContact(String userId, String contactId) async {
-    return await _db.reference().child('$_branchUsersInfo/$userId/$contactId').set(true);
+    return await _db.reference().child('$_branchUsersContact/$userId/$contactId').set(true);
+  }
+
+  Future<bool> usernameExist(String publicId) async {
+    var snapshot = await _db.reference().child('$_branchUsersInfo/$publicId').once();
+    return snapshot != null;
   }
 
 
@@ -58,7 +63,8 @@ class NetworkHandler {
   Future<UserData> getUserData(String publicId) async {
     DataSnapshot snapshot =
         await _db.reference().child('$_branchUsersInfo/$publicId').once();
-    return UserData.fromSnapshot(snapshot);
+
+    return snapshot == null ? null : UserData.fromSnapshot(snapshot);
   }
 
   Future<DataSnapshot> getChatRoomSnapshot(String chatId) async{
