@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/model/app_data.dart';
 
 class AddContactScreen extends StatefulWidget {
-//  final String userPublicId;
-//
-//  const AddContactScreen(this.userPublicId);
-
   @override
   AddContactScreenState createState() {
     return new AddContactScreenState();
@@ -15,7 +11,6 @@ class AddContactScreen extends StatefulWidget {
 class AddContactScreenState extends State<AddContactScreen> {
   final TextEditingController _idFieldController = TextEditingController();
   bool loading = false;
-//  String _publicId;
 
   @override
   void initState() {
@@ -23,13 +18,6 @@ class AddContactScreenState extends State<AddContactScreen> {
     super.initState();
 
   }
-
-//  void init(){
-//    Repository repo = Repository.get();
-//    repo.getUserAuthToken().then((token) async {
-//      _publicId = await repo.getUserPublicId(token);
-//    });
-//  }
 
   @override
   Widget build(BuildContext context) {

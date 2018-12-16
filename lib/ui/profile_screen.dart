@@ -92,6 +92,7 @@ class ProfileScreenState extends State<ProfileScreen> {
     return Padding(
       padding: const EdgeInsets.all(30.0),
       child: Stack(
+        alignment: Alignment.center,
           children: <Widget>[
             CircularNetworkProfileImage(
               size: 300.0,

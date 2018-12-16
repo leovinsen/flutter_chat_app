@@ -10,8 +10,9 @@ class ChatScreen extends StatefulWidget {
   final String userPublicId;
   final UserData contactModel;
   final String chatUID;
+  final Future<Query> chatStream;
 
-  ChatScreen({this.userPublicId, this.contactModel, this.chatUID});
+  ChatScreen({this.userPublicId, this.contactModel, this.chatUID, this.chatStream});
 
   @override
   State createState() => new ChatScreenState();
@@ -21,11 +22,14 @@ class ChatScreenState extends State<ChatScreen> {
   final List<MessageBubble> _messages = <MessageBubble>[];
   final TextEditingController _textController = new TextEditingController();
   bool _isWriting = false;
+  Query query;
+
 
   @override
   void initState() {
     super.initState();
-    print('${widget.userPublicId}');
+    widget.chatStream.then((q) => setState(() => query = q));
+    print('ChatScreen: ${widget.userPublicId}');
   }
 
   @override
@@ -33,7 +37,7 @@ class ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       appBar: _appBar(),
       body: Column(children: <Widget>[
-        _chatMessages(),
+        _chatContainer(),
         SizedBox(height: 5.0),
         Divider(height: 1.0),
         _chatBox()
@@ -65,7 +69,7 @@ class ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _chatMessages(){
+  Widget _chatContainer(){
     return Flexible(
         child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -73,13 +77,11 @@ class ChatScreenState extends State<ChatScreen> {
         ));
   }
 
-  Widget _buildChatMessages(){
+  Widget _buildChatMessages() {
     return FirebaseAnimatedList(
       reverse: false,
       sort:  (a, b) => (a.value['messageTime'] as int).compareTo(b.value['messageTime']),
-      query: FirebaseDatabase.instance
-          .reference()
-          .child('chatMessages/${widget.chatUID}').orderByChild('messageTime'),
+      query: query ,
       itemBuilder: (_, DataSnapshot snapshot, Animation<double> animation,
           int index) {
         return MessageBubble(

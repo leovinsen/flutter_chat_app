@@ -30,7 +30,7 @@ class CircularNetworkProfileImage extends StatelessWidget {
           );
 
     final ImageProvider smallImage = url.isEmpty
-        ? AssetImage('assets/default_profile_picture_128px.jpg')
+        ? AssetImage( size < 129 ? 'assets/default_profile_picture_128px.jpg' : 'assets/default_profile_picture_744px.jpg' )
         : CachedNetworkImageProvider(url);
 
 

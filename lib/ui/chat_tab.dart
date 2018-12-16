@@ -11,10 +11,7 @@ import 'package:scoped_model/scoped_model.dart';
 import '../util/dimensions.dart' as dimen;
 
 class ChatTab extends StatelessWidget {
-//  final List<ChatRoomData> chatModels;
   final DateFormat dateFormat = new DateFormat('dd/MM/yyyy');
-
-//  ChatTab({this.chatModels});
 
   @override
   Widget build(BuildContext context) {
@@ -24,11 +21,7 @@ class ChatTab extends StatelessWidget {
         return chatRooms.isEmpty
             ? _buildNoChatMessage()
             : _buildChatRooms(context, chatRooms, model);
-
-
-
       },
-
     );
   }
 
@@ -99,19 +92,8 @@ class ChatTab extends StatelessWidget {
   Widget contactName(String userDisplayName, ChatRoomData chatRoom) {
     List s = List.from(chatRoom.allMembers)..remove(userDisplayName);
     String contactName = s.first();
-
-
     return Text(contactName);
-//    return FutureBuilder(
-//      ///TODO: put cached data into initial dat
-//      initialData: "",
-//      future: getContactName(context, index),
-//      builder: (_, snapshot){
-//        if(snapshot.hasData){
-//          return Text(snapshot.data);
-//        }
-//      },
-//    );
+
   }
 
   TextStyle dateText(){
@@ -119,18 +101,6 @@ class ChatTab extends StatelessWidget {
       color: Colors.grey
     );
   }
-
-//  ////BUG
-//  ///RETRIEVE DATA FROM FIREBASE!!!
-//  Future<String> getContactName(BuildContext context, int index) async {
-//    String publicId = getContactPublicId(context, index);
-//
-//    DataSnapshot snapshot = await FirebaseDatabase.instance.reference().child('usersInfo/$publicId').once();
-//    return snapshot.value['displayName'];
-////    AppData appData = AppData.of(context);
-////    List s = List.from(chatModels[index].allMembers)
-////      ..remove(appData.userDisplayName);
-//  }
 
   String getContactPublicId(ChatRoomData chatRoom, String userId){
     List s = List.from(chatRoom.allMembersPublicId)..remove(userId);
@@ -145,17 +115,17 @@ class ChatTab extends StatelessWidget {
     return snapshot.value;
   }
 
-  void handleClick(BuildContext context, String contactPublicId, String chatUID) {
+  void handleClick(BuildContext context, String contactPublicId, String chatUID) async {
     AppData appData = AppData.of(context);
-//    var repo = Repository.get();
-//    print(appData.contactsData);
     UserData contactModel = appData.contactsData.singleWhere((contactModel){
       return contactModel.publicId == contactPublicId;
     });
 
+//    Query chatStream = await
+
     print('CHAT_TAB: Opening ChatScreen for $chatUID');
     Navigator.push(context, MaterialPageRoute(
-        builder: (context) => ChatScreen(userPublicId: appData.publicId, contactModel: contactModel, chatUID: chatUID, ))
+        builder: (context) => ChatScreen(userPublicId: appData.publicId, contactModel: contactModel, chatUID: chatUID, chatStream: appData.getChatMessageStream(chatUID), ))
     );
 
   }

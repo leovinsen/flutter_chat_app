@@ -33,17 +33,21 @@ class _LoginPageNewState extends State<LoginPage> {
       try {
         switch (_formType) {
           case FormType.login:
-            data.signIn(_email, _password);
+            await data.signIn(_email, _password);
             break;
 
           case FormType.register:
-            data.registerNew(_email, _password);
+            await data.registerNew(_email, _password);
             break;
         }
       } catch (e) {
-        print(e);
+
+        var arr = e.toString().split(',');
+        print(arr[1]);
+        print(arr.toString());
+        createDialog(context, 'Error', arr[1].trim());
       } finally {
-        loggingIn = false;
+        setState(()=>  loggingIn = false);
       }
     }
   }
@@ -54,7 +58,7 @@ class _LoginPageNewState extends State<LoginPage> {
         builder: (_){
           return AlertDialog(
             title: Text(title),
-            content: Text(content) ,
+            content: Text(content),
             actions: <Widget>[
               FlatButton(
                 child: Text("OK"),

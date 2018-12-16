@@ -19,6 +19,7 @@ import 'package:flutter_chat_app/model/user_data.dart';
 //}
 
 class Repository  {
+  static final String tag = "REPO";
 
   CacheDatabase database;
   CacheSharedPrefs sharedPrefs;
@@ -35,6 +36,10 @@ class Repository  {
   Future init() async {
     print('Initializing Repository');
     await sharedPrefs.init();
+  }
+
+  Future<Query> getChatMessageStream(String chatId) async {
+    return await network.getChatMessagesStream(chatId);
   }
 
   Future<String> registerNewAccount(String email, String password) async{
@@ -81,7 +86,7 @@ class Repository  {
     if (token == null) {
       print('User auth token not found in SharedPrefs');
       token = await auth.currentUser();
-      sharedPrefs.updateUserAuthToken(token);
+      //sharedPrefs.updateUserAuthToken(token);
     }
       return token;
     }
@@ -89,17 +94,22 @@ class Repository  {
 
   Future<String> getUserPublicId(String token) async {
     String publicId = await sharedPrefs.getUserPublicId();
-    print('sharedPrefs: $publicId');
+    print('$tag: Fetching publicID from sharedPrefs $publicId');
     if (publicId == null){
       publicId = await network.getPublicId(token);
       sharedPrefs.updateUserPublicId(publicId);
-      print('publicId networkFetch: $publicId');
+      print('$tag: Fetching publicId from network: $publicId');
     }
     return publicId;
   }
 
-  Future<String> getUserDisplayName() async {
+  Future<String> getUserDisplayName(String publicId) async {
     String name = await sharedPrefs.getUserDisplayName();
+    print('$tag: Fetching display name from sharedPrefs: $name');
+    if(name == null){
+      name = await network.getUserDisplayName(publicId);
+      sharedPrefs.updateUserDisplayName(name);
+    }
     return name;
   }
 

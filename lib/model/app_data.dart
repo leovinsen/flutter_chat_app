@@ -19,6 +19,8 @@ AuthStatus enumFromString(String str){
 
 class AppData extends Model {
 
+  static final String tag = "APP_DATA";
+
   Repository repo;
   bool ready = false;
 
@@ -73,7 +75,7 @@ class AppData extends Model {
       ///If not null, then he/she has registered one
       if(_publicId != null){
         ///Now get the display name
-        _displayName = await repo.getUserDisplayName();
+        _displayName = await repo.getUserDisplayName(_publicId);
         print('displayName from repo: $_displayName');
         ///User is signedIn
         _status = AuthStatus.signedIn;
@@ -87,7 +89,7 @@ class AppData extends Model {
 
     } else {
       ///Token for user is not found. Therefore not signed in
-      print('Auth.currentUser() returns null. User is not signed in');
+      print('$tag: No auth token is found. User is not signed in');
       _status = AuthStatus.notSignedIn;
     }
 
@@ -108,18 +110,26 @@ class AppData extends Model {
   ///Called when user signs in through Login Page
   Future signIn(String email, String password) async {
     ///Do Error handling, result message etc here
-    String token = await repo.signIn(email, password);
 
-    String publicId = await repo.getUserPublicId(token);
-    if(publicId == null){
-      _status = AuthStatus.incompleteRegistration;
-    } else {
-      _status = AuthStatus.signedIn;
-      _publicId = publicId;
-    }
+
+      ///
+      String token = await repo.signIn(email, password);
+
+      String publicId = await repo.getUserPublicId(token);
+      if (publicId == null) {
+        _status = AuthStatus.incompleteRegistration;
+      } else {
+        _status = AuthStatus.signedIn;
+        _displayName = await repo.getUserDisplayName(publicId);
+        _publicId = publicId;
+      }
+
     notifyListeners();
   }
 
+  Future<Query> getChatMessageStream(String chatId) async{
+    return repo.getChatMessageStream(chatId);
+  }
 
   ///Called when user registers a new account in LoginPage
   Future<void> registerNew(String email, String password) async {
@@ -157,12 +167,7 @@ class AppData extends Model {
     notifyListeners();
   }
 
-  void initSubscriptions() {
-    print("Initiating Subscriptions");
-    _onNewContactsSub = repo.newContactListener(publicId, retrieveContactInfo);
-    _onNewChatSub = repo.newChatRoomListener(publicId, getChatRoomData);
-    _onProfileUpdate = repo.onProfileUpdate(publicId, updateUserProfile);
-  }
+
 
   ///Function that is called when a new chat room is found in user's chat rooms branch
   void getChatRoomData(Event event) async {
@@ -237,6 +242,13 @@ class AppData extends Model {
     print('Adding contact named $contactId');
     _contactsData.add(await repo.getUserDataFor(contactId));
     notifyListeners();
+  }
+
+  void initSubscriptions() {
+    print("Initiating Subscriptions");
+    _onNewContactsSub = repo.newContactListener(publicId, retrieveContactInfo);
+    _onNewChatSub = repo.newChatRoomListener(publicId, getChatRoomData);
+    _onProfileUpdate = repo.onProfileUpdate(publicId, updateUserProfile);
   }
 
   void cancelSubscriptions() {

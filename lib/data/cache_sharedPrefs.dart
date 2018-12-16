@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CacheSharedPrefs {
+  final String tag = "SHARED_PREFS";
   final String _kAuthToken = 'userAuthToken';
   final String _kPublicId = 'userPublicId';
 //  final String _kAuthStatus = 'userAuthStatus';
@@ -26,6 +27,7 @@ class CacheSharedPrefs {
 
   Future<bool> destroy() async {
     var sp = await getSP();
+    print('$tag: Deleting sharedPrefs');
     return await sp.clear();
   }
 
@@ -61,14 +63,17 @@ class CacheSharedPrefs {
 //  }
 
   Future<bool> updateUserAuthToken(String token) async {
+    print('$tag: Saving user token $token');
     return await _sp.setString(_kAuthToken, token);
   }
 
   Future<bool> updateUserPublicId(String id) async {
+    print('$tag: Saving user public Id $id');
     return await _sp.setString(_kPublicId, id);
   }
 
   Future<bool> updateUserDisplayName(String name) async {
+    print('$tag: Saving user display name $name');
     return await _sp.setString(_kDisplayName, name);
   }
 

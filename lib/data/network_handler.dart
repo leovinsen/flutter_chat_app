@@ -16,12 +16,18 @@ class NetworkHandler {
   final String _branchUsers ='users';
   final String _branchChatMessages = 'chatsMessages';
 
-
   NetworkHandler._internal();
 
   Future<String> getPublicId(String token) async {
     var snapshot = await _db.reference().child('$_branchUsers/$token').once();
     return snapshot.value;
+  }
+
+  Future<Query> getChatMessagesStream(String chatId) async {
+    return _db.reference().child('$_branchChatMessages}/$chatId').orderByChild('messageTime');
+//    return FirebaseDatabase.instance
+//        .reference()
+//        .child('chatMessages/${widget.chatUID}').orderByChild('messageTime');
   }
 
   Future registerPublicId(String token, String publicId) async {
