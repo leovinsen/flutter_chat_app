@@ -49,7 +49,7 @@ class ContactsTab extends StatelessWidget {
   goToChatScreen(BuildContext context, String userPublicId, UserData contactModel) {
     //helper.createChatRoomIfAbsent(userModel.publicId, contactModel.publicId);
     Navigator.push(context, MaterialPageRoute(
-        builder: (context) => ChatScreen(userPublicId: userPublicId, contactModel: contactModel, ))
+        builder: (context) => ChatScreen(userPublicId: userPublicId, contactModel: contactModel,))
     );
   }
 }

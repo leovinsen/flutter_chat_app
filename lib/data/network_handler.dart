@@ -23,11 +23,43 @@ class NetworkHandler {
     return snapshot.value;
   }
 
-  Future<Query> getChatMessagesStream(String chatId) async {
-    return _db.reference().child('$_branchChatMessages}/$chatId').orderByChild('messageTime');
-//    return FirebaseDatabase.instance
-//        .reference()
-//        .child('chatMessages/${widget.chatUID}').orderByChild('messageTime');
+  Query getChatMessagesStream(String chatId)  {
+    print('getchatStream: $chatId');
+    return _db.reference().child('$_branchChatMessages/$chatId').orderByChild('messageTime');
+  }
+
+  Future<void> insertChatMessage(String chatId, String senderId, String receiverId, String message) async {
+
+    ///insert chat room into both parties' branch at /userChats/
+    _db.reference().child('userChats/$senderId').update({
+      chatId : true
+    });
+    _db.reference().child('userChats/$receiverId').update({
+      chatId : true
+    });
+
+    ///Create new entry in the /chatMessages/chatUID branch
+    DatabaseReference newMessageRef = _db.reference().child('$_branchChatMessages/$chatId').push();
+    String newMessageID = newMessageRef.key;
+    int timeStamp = DateTime.now().millisecondsSinceEpoch;
+
+    ///Insert chat message
+    newMessageRef.update({
+      'sentBy' : senderId,
+      'messageTime' : timeStamp ,
+      'message' : message
+    });
+
+    ///Update Chat room's last message sent. Also used to initialize chat room for the first time
+    ///branch /chats/
+    _db.reference().child('$_branchChats/$chatId').update({
+      'members' : {
+        senderId : true,
+        receiverId : true
+      },
+      'lastMessageSent' : newMessageID,
+      'lastMessageSentTime' : timeStamp,
+    });
   }
 
   Future registerPublicId(String token, String publicId) async {
@@ -90,11 +122,6 @@ class NetworkHandler {
         .listen(fn);
   }
 
-//  StreamSubscription<Event> newMessageCallback(
-//      String chatUID, Function(Event) fn) {
-//    return _db.reference().child('chats/$chatUID').onValue.listen(fn);
-//  }
-//
   StreamSubscription<Event> newMessageCallback(
       String chatUID, Function(Event) fn) {
     print('$tag: Callback for $_branchChats/$chatUID');

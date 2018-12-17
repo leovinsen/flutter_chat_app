@@ -1,6 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
 import 'package:flutter_chat_app/widgets/circular_profile_image.dart';
 
@@ -9,10 +10,12 @@ import '../util/dimensions.dart' as dimen;
 class ChatScreen extends StatefulWidget {
   final String userPublicId;
   final UserData contactModel;
-  final String chatUID;
-  final Future<Query> chatStream;
 
-  ChatScreen({this.userPublicId, this.contactModel, this.chatUID, this.chatStream});
+//  final Query chatStream;
+
+  ChatScreen({this.userPublicId, this.contactModel})
+      : assert(userPublicId != null),
+        assert(contactModel != null);
 
   @override
   State createState() => new ChatScreenState();
@@ -22,14 +25,78 @@ class ChatScreenState extends State<ChatScreen> {
   final List<MessageBubble> _messages = <MessageBubble>[];
   final TextEditingController _textController = new TextEditingController();
   bool _isWriting = false;
-  Query query;
-
 
   @override
   void initState() {
     super.initState();
-    widget.chatStream.then((q) => setState(() => query = q));
-    print('ChatScreen: ${widget.userPublicId}');
+  }
+
+  void _submitMsg(String txt) {
+    _textController.clear();
+    AppData appData = AppData.of(context);
+
+    setState(() {
+      _isWriting = false;
+    });
+
+    MessageBubble msg = MessageBubble(
+      message: txt,
+      sender: MessageSender.user,
+    );
+
+    String chatUID =
+        determineChatUID(widget.userPublicId, widget.contactModel.publicId);
+    appData.sendMessage(
+        chatUID, widget.userPublicId, widget.contactModel.publicId, txt);
+
+    setState(() {
+      _messages.insert(0, msg);
+    });
+  }
+
+//  Future<void> insertChatMessage(String senderId, String receiverId, String message) async {
+//    FirebaseDatabase db = FirebaseDatabase.instance;
+//
+//    ///Determine the chat room ID
+//    String chatUID = determineChatUID(senderId, receiverId);
+//
+//    ///insert chat room into both parties' branch at /userChats/
+//    db.reference().child('userChats/$senderId').update({
+//      chatUID : true
+//    });
+//    db.reference().child('userChats/$receiverId').update({
+//      chatUID : true
+//    });
+//
+//    ///Create new entry in the /chatMessages/chatUID branch
+//    DatabaseReference newMessageRef = db.reference().child('chatMessages/$chatUID').push();
+//    String newMessageID = newMessageRef.key;
+//    int timeStamp = DateTime.now().millisecondsSinceEpoch;
+//
+//    ///Insert chat message
+//    newMessageRef.update({
+//      'sentBy' : senderId,
+//      'messageTime' : timeStamp ,
+//      'message' : message
+//    });
+//
+//    ///Update Chat room's last message sent. Also used to initialize chat room for the first time
+//    ///branch /chats/
+//    db.reference().child('chats/$chatUID').update({
+//      'members' : {
+//        senderId : true,
+//        receiverId : true
+//      },
+//      'lastMessageSent' : newMessageID,
+//      'lastMessageSentTime' : timeStamp,
+//    });
+//  }
+
+  ///a simple unique ID generator
+  String determineChatUID(String senderPublicId, String receiverPublicId) {
+    return senderPublicId.hashCode <= receiverPublicId.hashCode
+        ? '$senderPublicId-$receiverPublicId'
+        : '$receiverPublicId-$senderPublicId';
   }
 
   @override
@@ -45,12 +112,11 @@ class ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _appBar(){
+  Widget _appBar() {
     return AppBar(
         elevation: 2.0,
         automaticallyImplyLeading: true, //false to hide back button
-        title: _buildContactProfile()
-    );
+        title: _buildContactProfile());
   }
 
   Widget _buildContactProfile() {
@@ -60,7 +126,11 @@ class ChatScreenState extends State<ChatScreen> {
         contentPadding: EdgeInsets.zero,
         title: Row(
           children: <Widget>[
-            CircularNetworkProfileImage(size: dimen.chatScreenBarCircleImageSize, url: widget.contactModel.thumbUrl, publicId: widget.contactModel.publicId,),
+            CircularNetworkProfileImage(
+              size: dimen.chatScreenBarCircleImageSize,
+              url: widget.contactModel.thumbUrl,
+              publicId: widget.contactModel.publicId,
+            ),
             SizedBox(width: 12.0),
             Text(widget.contactModel.displayName)
           ],
@@ -69,21 +139,26 @@ class ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _chatContainer(){
+  Widget _chatContainer() {
     return Flexible(
         child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: _buildChatMessages()
-        ));
+            padding: const EdgeInsets.all(8.0), child: _buildChatMessages()));
   }
 
   Widget _buildChatMessages() {
+//    return widget.chatStream == null ? Center(child: Text('Start chatting no!'),) :
+    String chatId =
+        determineChatUID(widget.userPublicId, widget.contactModel.publicId);
+    Query query = AppData.of(context).getChatMessageStream(chatId);
+    if(query == null) print('query is nul');
     return FirebaseAnimatedList(
       reverse: false,
-      sort:  (a, b) => (a.value['messageTime'] as int).compareTo(b.value['messageTime']),
-      query: query ,
-      itemBuilder: (_, DataSnapshot snapshot, Animation<double> animation,
-          int index) {
+      sort: (a, b) =>
+          (a.value['messageTime'] as int).compareTo(b.value['messageTime']),
+      query: query,
+      itemBuilder:
+          (_, DataSnapshot snapshot, Animation<double> animation, int index) {
+        print('indeOf :$index');
         return MessageBubble(
           message: snapshot.value['message'],
           sender: snapshot.value['sentBy'] == widget.userPublicId
@@ -94,21 +169,19 @@ class ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _chatBox(){
+  Widget _chatBox() {
     return Container(
       child: _buildComposer(),
-      decoration:  BoxDecoration(color: Theme
-          .of(context)
-          .cardColor),
+      decoration: BoxDecoration(color: Theme.of(context).cardColor),
     );
   }
 
   Widget _buildComposer() {
-    return  IconTheme(
-      data:  IconThemeData(color: Theme.of(context).accentColor),
-      child:  Container(
+    return IconTheme(
+      data: IconThemeData(color: Theme.of(context).accentColor),
+      child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 9.0),
-        child:  Row(
+        child: Row(
           children: <Widget>[
             Flexible(
               child: TextField(
@@ -137,69 +210,6 @@ class ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
-
-  void _submitMsg(String txt) {
-    _textController.clear();
-
-    setState(() {
-      _isWriting = false;
-    });
-
-    MessageBubble msg = MessageBubble(
-      message: txt,
-      sender: MessageSender.user,
-    );
-
-    insertChatMessage(widget.userPublicId, widget.contactModel.publicId, txt);
-
-    setState(() {
-      _messages.insert(0, msg);
-    });
-  }
-
-  Future<void> insertChatMessage(String senderId, String receiverId, String message) async {
-    FirebaseDatabase db = FirebaseDatabase.instance;
-
-    ///Determine the chat room ID
-    String chatUID = determineChatUID(senderId, receiverId);
-
-    ///insert chat room into both parties' branch at /userChats/
-    db.reference().child('userChats/$senderId').update({
-      chatUID : true
-    });
-    db.reference().child('userChats/$receiverId').update({
-      chatUID : true
-    });
-
-    ///Create new entry in the /chatMessages/chatUID branch
-    DatabaseReference newMessageRef = db.reference().child('chatMessages/$chatUID').push();
-    String newMessageID = newMessageRef.key;
-    int timeStamp = DateTime.now().millisecondsSinceEpoch;
-
-    ///Insert chat message
-    newMessageRef.update({
-      'sentBy' : senderId,
-      'messageTime' : timeStamp ,
-      'message' : message
-    });
-
-    ///Update Chat room's last message sent. Also used to initialize chat room for the first time
-    ///branch /chats/
-    db.reference().child('chats/$chatUID').update({
-      'members' : {
-        senderId : true,
-        receiverId : true
-      },
-      'lastMessageSent' : newMessageID,
-      'lastMessageSentTime' : timeStamp,
-    });
-  }
-
-  ///a simple unique ID generator
-  String determineChatUID(String senderPublicId, String receiverPublicId){
-    return senderPublicId.hashCode <= receiverPublicId.hashCode ? '$senderPublicId-$receiverPublicId' : '$receiverPublicId-$senderPublicId';
-  }
-
 
   @override
   void dispose() {

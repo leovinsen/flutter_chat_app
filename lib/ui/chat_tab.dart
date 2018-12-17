@@ -121,11 +121,10 @@ class ChatTab extends StatelessWidget {
       return contactModel.publicId == contactPublicId;
     });
 
-//    Query chatStream = await
 
     print('CHAT_TAB: Opening ChatScreen for $chatUID');
     Navigator.push(context, MaterialPageRoute(
-        builder: (context) => ChatScreen(userPublicId: appData.publicId, contactModel: contactModel, chatUID: chatUID, chatStream: appData.getChatMessageStream(chatUID), ))
+        builder: (context) => ChatScreen(userPublicId: appData.publicId, contactModel: contactModel,))
     );
 
   }

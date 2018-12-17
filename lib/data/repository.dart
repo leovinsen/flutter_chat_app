@@ -7,16 +7,6 @@ import 'package:flutter_chat_app/data/network_handler.dart';
 import 'package:flutter_chat_app/model/auth.dart';
 import 'package:flutter_chat_app/model/chat_room_data.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
-//
-//enum AuthStatus {
-//  notSignedIn,
-//  incompleteRegistration,
-//  signedIn,
-//}
-//
-//AuthStatus enumFromString(String str){
-//  return AuthStatus.values.firstWhere((elem) => elem.toString() == str, orElse: ()=> null);
-//}
 
 class Repository  {
   static final String tag = "REPO";
@@ -38,9 +28,11 @@ class Repository  {
     await sharedPrefs.init();
   }
 
-  Future<Query> getChatMessageStream(String chatId) async {
-    return await network.getChatMessagesStream(chatId);
+  Query getChatMessageStream(String chatId) {
+    return network.getChatMessagesStream(chatId);
   }
+
+  Function get sendMessage => network.insertChatMessage;
 
   Future<String> registerNewAccount(String email, String password) async{
     String token = await auth.createUser(email, password);
@@ -124,12 +116,15 @@ class Repository  {
   }
 
   Future<List<UserData>> loadContacts() async {
-    List list = await database.getAllContactsData();
+    List rawMaps = await database.getAllContactsData();
+    List<UserData> users = [];
+    rawMaps.forEach((map) => users.add(UserData.fromMap(map)));
+
 //    List<UserData> users = [];
 //    for (String id in list){
 //      users.add(await database.getUserData(id));
 //    }
-    return list;
+    return users;
   }
 
   Future<List<ChatRoomData>> loadChatRooms() async {
@@ -178,8 +173,7 @@ class Repository  {
   Future<ChatRoomData> getChatRoom(String chatRoomId) async{
     var snapshot = await network.getChatRoomSnapshot(chatRoomId);
 
-    List allMembersPublicId =
-    Map<String, bool>.from(snapshot.value['members']).keys.toList();
+    List allMembersPublicId = Map<String, bool>.from(snapshot.value['members']).keys.toList();
 
     ///Note: Might need to add await to getUserDisplayName
     List<String> allMembersDisplayName = [];
@@ -202,6 +196,4 @@ class Repository  {
       lastMessageSentTime: lastMessageSentTime,
     );
   }
-
-
   }

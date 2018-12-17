@@ -132,7 +132,11 @@ class AppData extends Model {
     notifyListeners();
   }
 
-  Future<Query> getChatMessageStream(String chatId) async{
+  Future<void> sendMessage(String chatId, String senderId, String receiverId, String message) async {
+    await repo.sendMessage(chatId, senderId, receiverId, message);
+  }
+
+  Query getChatMessageStream(String chatId) {
     return repo.getChatMessageStream(chatId);
   }
 

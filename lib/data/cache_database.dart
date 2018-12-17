@@ -56,10 +56,10 @@ class CacheDatabase{
               ${ChatRoomData.kLastMessageSent} TEXT NOT NULL,
               ${ChatRoomData.kLastMessageTime} INTEGER NOT NULL)
           ''');
-          await db.execute('''
-            CREATE TABLE $tableUserContacts (
-               $colPublicId TEXT PRIMARY KEY NOT NULL)
-          ''');
+//          await db.execute('''
+//            CREATE TABLE $tableUserContacts (
+//               $colPublicId TEXT PRIMARY KEY NOT NULL)
+//          ''');
         });
     didInit = true;
     print('SQLite database init done');
@@ -83,14 +83,9 @@ class CacheDatabase{
         columns: [UserData.kPublicId, UserData.kDisplayName, UserData.kThumbUrl],
         where: "isContact = ?",
         whereArgs: [true]) ..toList();
-    return result.toList();
+    return result;
   }
 
-//  Future<List> getAllContacts() async {
-//    var db = await _getDb();
-//    List result = await db.query(tableUserContacts, columns: [colPublicId]);
-//    return result;
-//  }
 
   Future<List> getAllChatRoomsData() async {
     var db = await _getDb();
