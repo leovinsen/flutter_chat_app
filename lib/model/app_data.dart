@@ -71,42 +71,68 @@ class AppData extends Model {
     await _loadSharedPrefs();
 
     ///Authenticate user
-    _token = await repo.getUserAuthToken();
-
-    ///User authenticated
-    if(_token != null) {
-      ///Check if he/she has registered a public Id (which is compulsory)
-      _publicId = await repo.getUserPublicId(_token);
-      ///If not null, then he/she has registered one
-      if(_publicId != null){
-        ///Now get the display name
-        _displayName = await repo.getUserDisplayName(_publicId);
-        print('displayName from repo: $_displayName');
-        _thumbUrl = await repo.getUserThumbUrl(_publicId);
-
-        _status = AuthStatus.signedIn;
-
-
-        //Now load cached data:
-        //User chats, user contacts, user profile
-        await _loadCache();
-      } else {
-        ///publicId is not found, therefore he/she has to register one
-        _status = AuthStatus.incompleteRegistration;
-      }
-
-    } else {
-      ///Token for user is not found. Therefore not signed in
-      print('$tag: No auth token is found. User is not signed in');
-      _status = AuthStatus.notSignedIn;
-    }
-
-    ready = true;
-    notifyListeners();
+//    _token = await repo.getUserAuthToken();
+//
+//    ///User authenticated
+//    if(_token != null) {
+//      ///Check if he/she has registered a public Id (which is compulsory)
+//      _publicId = await repo.getUserPublicId(_token);
+//      ///If not null, then he/she has registered one
+//      if(_publicId != null){
+//        ///Now get the display name
+//        _displayName = await repo.getUserDisplayName(_publicId);
+//        print('displayName from repo: $_displayName');
+//        _thumbUrl = await repo.getUserThumbUrl(_publicId);
+//
+//        _status = AuthStatus.signedIn;
+//
+//
+//        //Now load cached data:
+//        //User chats, user contacts, user profile
+//        await _loadCache();
+//      } else {
+//        ///publicId is not found, therefore he/she has to register one
+//        _status = AuthStatus.incompleteRegistration;
+//      }
+//
+//    } else {
+//      ///Token for user is not found. Therefore not signed in
+//      print('$tag: No auth token is found. User is not signed in');
+//      _status = AuthStatus.notSignedIn;
+//    }
+//
+//    ready = true;
+//    notifyListeners();
   }
 
-  Future<void> _loadSharedPrefs(){
+  Future<void> _loadSharedPrefs() async{
+    String token = await repo.loadCacheToken();
+    if(token == null){
+      print('$tag: No auth token is found. User is not signed in');
+      _status = AuthStatus.notSignedIn;
+    } else {
+      _token = token;
+      String publicId = await repo.loadCachePublicId();
+      if(publicId == null) {
+        _status = AuthStatus.incompleteRegistration;
+      } else {
+        _publicId = publicId;
+        _displayName = await repo.loadCacheDisplayName();
+        _thumbUrl = await repo.loadCacheThumbUrl();
+        _status = AuthStatus.signedIn;
+      }
+    }
+    ready = true;
+    notifyListeners();
+    _refreshUserData();
+  }
 
+  void _refreshUserData(){
+    repo.getCurrentUserData(_publicId).then((user){
+      _displayName = user.displayName;
+      _thumbUrl = user.thumbUrl;
+      notifyListeners();
+    });
   }
 
   Future _loadCache() async {

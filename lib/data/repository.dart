@@ -23,6 +23,11 @@ class Repository  {
     network = NetworkHandler.instance;
   }
 
+  Function get loadCacheToken => sharedPrefs.getUserAuthToken;
+  Function get loadCachePublicId => sharedPrefs.getUserPublicId;
+  Function get loadCacheDisplayName => sharedPrefs.getUserDisplayName;
+  Function get loadCacheThumbUrl => sharedPrefs.getUserThumbUrl;
+
   Future init() async {
     print('Initializing Repository');
     await sharedPrefs.init();
@@ -114,6 +119,10 @@ class Repository  {
       sharedPrefs.updateUserThumbUrl(url);
 //    }
     return url;
+  }
+
+  Future<UserData> getCurrentUserData(String publicId) async {
+    return await network.getUserData(publicId);
   }
 
   ///Fetches the newest data from network
