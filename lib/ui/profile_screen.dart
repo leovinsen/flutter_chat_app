@@ -38,7 +38,7 @@ class ProfileScreenState extends State<ProfileScreen> {
     FirebaseDatabase db = FirebaseDatabase.instance;
     String s = await (await uploadTask.onComplete).ref.getDownloadURL();
     db.reference().child('usersInfo/$publicId').update({'thumbUrl' : s });
-    Scaffold.of(context).showSnackBar(SnackBar(content: Text('Upload successful'), duration: Duration(seconds: 2),));
+    if (mounted) Scaffold.of(context).showSnackBar(SnackBar(content: Text('Upload successful'), duration: Duration(seconds: 2),));
     debugPrint('Upload successful: $s');
   }
 
@@ -96,7 +96,7 @@ class ProfileScreenState extends State<ProfileScreen> {
           children: <Widget>[
             CircularNetworkProfileImage(
               size: 300.0,
-              url: null,
+              url: data.thumbUrl,
               publicId: data.publicId,
             ),
             Positioned(
@@ -163,18 +163,4 @@ class ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-//  void createDialog(BuildContext context) {
-//      showDialog(
-//        barrierDismissible: false,
-//          context: context,
-//          builder: (_){
-//            return AlertDialog(
-//              content: Row(children: <Widget>[
-//                Text('Uploading...'),
-//                CircularProgressIndicator()
-//              ]) ,
-//            );
-//          }
-//      );
-//    }
 }

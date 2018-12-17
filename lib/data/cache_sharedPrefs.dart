@@ -4,17 +4,11 @@ class CacheSharedPrefs {
   final String tag = "SHARED_PREFS";
   final String _kAuthToken = 'userAuthToken';
   final String _kPublicId = 'userPublicId';
-//  final String _kAuthStatus = 'userAuthStatus';
   final String _kDisplayName = 'userDisplayName';
+  final String _kThumbUrl = 'userThumbUrl';
 
-//  static final CacheSharedPrefs instance = CacheSharedPrefs._internal();
   SharedPreferences _sp;
   bool didInit = false;
-
-//
-//  CacheSharedPrefs._internal(){
-////    init();
-//  }
 
   Future<bool> init() async {
     try {
@@ -57,10 +51,10 @@ class CacheSharedPrefs {
     return sp.get(_kDisplayName);
   }
 
-//  Future<String> getUserAuthStatus() async {
-//    var sp = await getSP();
-//    return sp.get(_kAuthStatus);
-//  }
+  Future<String> getUserThumbUrl() async {
+    var sp = await getSP();
+    return sp.get(_kThumbUrl);
+  }
 
   Future<bool> updateUserAuthToken(String token) async {
     print('$tag: Saving user token $token');
@@ -77,9 +71,8 @@ class CacheSharedPrefs {
     return await _sp.setString(_kDisplayName, name);
   }
 
-
-//
-//  Future<bool> updateUserAuthStatus(String authStatus) async {
-//    return await _sp.setString(_kAuthStatus, authStatus);
-//  }
+  Future<bool> updateUserThumbUrl(String url) async {
+    print('$tag: Saving user thumbUrl $url');
+    return await _sp.setString(_kThumbUrl, url);
+  }
 }

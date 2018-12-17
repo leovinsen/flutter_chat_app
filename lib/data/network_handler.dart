@@ -80,6 +80,8 @@ class NetworkHandler {
   }
 
 
+
+
   Future<String> getChatMessage(String chatUID, String messageUID) async {
     DataSnapshot snapshot =
         await _db.reference().child('$_branchChatMessages/$chatUID/$messageUID').once();
@@ -89,6 +91,12 @@ class NetworkHandler {
   Future<String> getUserDisplayName(String publicId) async {
     DataSnapshot snapshot =
         await _db.reference().child('$_branchUsersInfo/$publicId/${UserData.kDisplayName}').once();
+    return snapshot.value;
+  }
+
+  Future<String> getUserThumbUrl(String publicId) async {
+    DataSnapshot snapshot =
+    await _db.reference().child('$_branchUsersInfo/$publicId/${UserData.kThumbUrl}').once();
     return snapshot.value;
   }
 

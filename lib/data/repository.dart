@@ -65,6 +65,8 @@ class Repository  {
     return token;
   }
 
+
+
   Future signOut() async {
     auth.signOut().then((a) {
       sharedPrefs.destroy();
@@ -74,35 +76,57 @@ class Repository  {
   }
   Future<String> getUserAuthToken() async {
     String token;
-    token = await sharedPrefs.getUserAuthToken();
-    if (token == null) {
+//    token = await sharedPrefs.getUserAuthToken();
+//    if (token == null) {
       print('User auth token not found in SharedPrefs');
       token = await auth.currentUser();
       //sharedPrefs.updateUserAuthToken(token);
-    }
+//    }
       return token;
     }
 
 
   Future<String> getUserPublicId(String token) async {
-    String publicId = await sharedPrefs.getUserPublicId();
-    print('$tag: Fetching publicID from sharedPrefs $publicId');
-    if (publicId == null){
-      publicId = await network.getPublicId(token);
+//    String publicId = await sharedPrefs.getUserPublicId();
+//    print('$tag: Fetching publicID from sharedPrefs $publicId');
+//    if (publicId == null){
+      String publicId = await network.getPublicId(token);
       sharedPrefs.updateUserPublicId(publicId);
-      print('$tag: Fetching publicId from network: $publicId');
-    }
+//      print('$tag: Fetching publicId from network: $publicId');
+//    }
     return publicId;
   }
 
   Future<String> getUserDisplayName(String publicId) async {
-    String name = await sharedPrefs.getUserDisplayName();
-    print('$tag: Fetching display name from sharedPrefs: $name');
-    if(name == null){
-      name = await network.getUserDisplayName(publicId);
+//    String name = await sharedPrefs.getUserDisplayName();
+//    print('$tag: Fetching display name from sharedPrefs: $name');
+//    if(name == null){
+      String name = await network.getUserDisplayName(publicId);
       sharedPrefs.updateUserDisplayName(name);
-    }
+//    }
     return name;
+  }
+
+  Future<String> getUserThumbUrl(String publicId) async {
+//    String url = await sharedPrefs.getUserThumbUrl();
+//    if(url == null){
+      String url = await network.getUserThumbUrl(publicId);
+      sharedPrefs.updateUserThumbUrl(url);
+//    }
+    return url;
+  }
+
+  ///Fetches the newest data from network
+  ///Then saves it into cache
+  Future<UserData> getUserDataFor(String publicId, bool isContact) async {
+    //Fetch from network
+    UserData user = await network.getUserData(publicId);
+    //Save into cache
+    int result = await database.update(user, isContact);
+    print('DATABASE_UPDATE RESULT: $result');
+    if (result == 0) await database.insertUser(user, isContact);
+
+    return user;
   }
 
   Future<bool> addContact(String userId, String contactId) async {
@@ -127,6 +151,14 @@ class Repository  {
     return users;
   }
 
+
+
+  Future<List> loadSharedPrefs() async {
+    var token = await sharedPrefs.getUserAuthToken();
+
+
+  }
+
   Future<List<ChatRoomData>> loadChatRooms() async {
     List list = await database.getAllChatRoomsData();
   }
@@ -146,19 +178,6 @@ class Repository  {
 
   StreamSubscription<Event> onProfileUpdate(String userId,Function fn) {
     return network.profileUpdateListener(userId, fn);
-  }
-
-  ///Fetches the newest data from network
-  ///Then saves it into cache
-  Future<UserData> getUserDataFor(String publicId, bool isContact) async {
-    //Fetch from network
-    UserData user = await network.getUserData(publicId);
-    //Save into cache
-    int result = await database.update(user, isContact);
-    print('DATABASE_UPDATE RESULT: $result');
-    if (result == 0) await database.insertUser(user, isContact);
-
-    return user;
   }
 
   Future<String> getChatMessage(String chatRoomId, String messageId ) async {

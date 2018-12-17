@@ -39,6 +39,7 @@ class AppData extends Model {
   StreamSubscription<Event> _onProfileUpdate;
 
 
+
   String _publicId;
   String _token;
   String _thumbUrl;
@@ -67,6 +68,8 @@ class AppData extends Model {
     ///Initialize Repository
     await repo.init();
 
+    await _loadSharedPrefs();
+
     ///Authenticate user
     _token = await repo.getUserAuthToken();
 
@@ -79,10 +82,13 @@ class AppData extends Model {
         ///Now get the display name
         _displayName = await repo.getUserDisplayName(_publicId);
         print('displayName from repo: $_displayName');
-        ///User is signedIn
+        _thumbUrl = await repo.getUserThumbUrl(_publicId);
+
         _status = AuthStatus.signedIn;
-        ///Now load cached data:
-        ///User chats, user contacts, user profile
+
+
+        //Now load cached data:
+        //User chats, user contacts, user profile
         await _loadCache();
       } else {
         ///publicId is not found, therefore he/she has to register one
@@ -99,6 +105,10 @@ class AppData extends Model {
     notifyListeners();
   }
 
+  Future<void> _loadSharedPrefs(){
+
+  }
+
   Future _loadCache() async {
     try {
       _contactsData = await repo.loadContacts();
@@ -112,35 +122,6 @@ class AppData extends Model {
     }
   }
 
-  ///Called when user signs in through Login Page
-  Future signIn(String email, String password) async {
-    ///Do Error handling, result message etc here
-
-
-      ///
-      String token = await repo.signIn(email, password);
-
-      String publicId = await repo.getUserPublicId(token);
-      if (publicId == null) {
-        _status = AuthStatus.incompleteRegistration;
-      } else {
-        _status = AuthStatus.signedIn;
-        _displayName = await repo.getUserDisplayName(publicId);
-        _publicId = publicId;
-      }
-
-    notifyListeners();
-  }
-
-  Future<void> sendMessage(String chatId, String senderId, String receiverId, String message) async {
-    await repo.sendMessage(chatId, senderId, receiverId, message);
-  }
-
-  Query getChatMessageStream(String chatId) {
-    return repo.getChatMessageStream(chatId);
-  }
-
-  ///Called when user registers a new account in LoginPage
   Future<void> registerNew(String email, String password) async {
     ///Auth Status etc
     ///Do Error handling, result message etc here
@@ -162,6 +143,26 @@ class AppData extends Model {
     }
   }
 
+  ///Called when user signs in through Login Page
+  Future signIn(String email, String password) async {
+    ///Do Error handling, result message etc here
+      ///
+      String token = await repo.signIn(email, password);
+
+      String publicId = await repo.getUserPublicId(token);
+      if (publicId == null) {
+        _status = AuthStatus.incompleteRegistration;
+      } else {
+        _status = AuthStatus.signedIn;
+        _displayName = await repo.getUserDisplayName(publicId);
+        _thumbUrl = await repo.getUserThumbUrl(publicId);
+        _publicId = publicId;
+      }
+
+    notifyListeners();
+  }
+
+
   ///Called when user signs out from the application
   ///This deletes all user data and cache
   ///And also clears variables from memory
@@ -174,6 +175,26 @@ class AppData extends Model {
     _displayName = null;
     _thumbUrl = null;
     notifyListeners();
+  }
+
+  Future<void> refreshUserData(String publicId) async {
+    UserData user = _contactsData.singleWhere((user){
+      return user.publicId == publicId;
+    });
+
+    UserData newUser = await repo.getUserDataFor(publicId, true);
+
+    _contactsData[_contactsData.indexOf(user)] = newUser;
+    print('Successfuly update user $publicId');
+    notifyListeners();
+  }
+
+  Future<void> sendMessage(String chatId, String senderId, String receiverId, String message) async {
+    await repo.sendMessage(chatId, senderId, receiverId, message);
+  }
+
+  Query getChatMessageStream(String chatId) {
+    return repo.getChatMessageStream(chatId);
   }
 
   ///TODO: Add enum for "ContactAddedAlready" and "ContactExists"
@@ -190,12 +211,6 @@ class AppData extends Model {
       return AddContact.duplicateContact;
     }
   }
-
-//  Future addContact(String contactId) async{
-//    ///If successfully added, now add to memory
-//
-//      print('Successfully added contact $contactId to firebase & db');
-//  }
 
   ///Function that is called when a new chat room is found in user's chat rooms branch
   void getChatRoomData(Event event) async {
@@ -217,6 +232,7 @@ class AppData extends Model {
 
     ///Update the latest message info on chat room
     if (chatRoom.lastMessageSentUID != newMessageId) {
+      print('Updating chhat');
       String newMessage = await repo.getChatMessage(chatRoom.chatUID, newMessageId);
       chatRoom.lastMessageSent = newMessage;
       notifyListeners();

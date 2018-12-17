@@ -11,8 +11,6 @@ class ChatScreen extends StatefulWidget {
   final String userPublicId;
   final UserData contactModel;
 
-//  final Query chatStream;
-
   ChatScreen({this.userPublicId, this.contactModel})
       : assert(userPublicId != null),
         assert(contactModel != null);
@@ -44,53 +42,19 @@ class ChatScreenState extends State<ChatScreen> {
       sender: MessageSender.user,
     );
 
-    String chatUID =
-        determineChatUID(widget.userPublicId, widget.contactModel.publicId);
+    String chatUID = determineChatUID(widget.userPublicId, widget.contactModel.publicId);
+
     appData.sendMessage(
-        chatUID, widget.userPublicId, widget.contactModel.publicId, txt);
+        chatUID,
+        widget.userPublicId,
+        widget.contactModel.publicId, txt
+    );
 
     setState(() {
       _messages.insert(0, msg);
     });
   }
 
-//  Future<void> insertChatMessage(String senderId, String receiverId, String message) async {
-//    FirebaseDatabase db = FirebaseDatabase.instance;
-//
-//    ///Determine the chat room ID
-//    String chatUID = determineChatUID(senderId, receiverId);
-//
-//    ///insert chat room into both parties' branch at /userChats/
-//    db.reference().child('userChats/$senderId').update({
-//      chatUID : true
-//    });
-//    db.reference().child('userChats/$receiverId').update({
-//      chatUID : true
-//    });
-//
-//    ///Create new entry in the /chatMessages/chatUID branch
-//    DatabaseReference newMessageRef = db.reference().child('chatMessages/$chatUID').push();
-//    String newMessageID = newMessageRef.key;
-//    int timeStamp = DateTime.now().millisecondsSinceEpoch;
-//
-//    ///Insert chat message
-//    newMessageRef.update({
-//      'sentBy' : senderId,
-//      'messageTime' : timeStamp ,
-//      'message' : message
-//    });
-//
-//    ///Update Chat room's last message sent. Also used to initialize chat room for the first time
-//    ///branch /chats/
-//    db.reference().child('chats/$chatUID').update({
-//      'members' : {
-//        senderId : true,
-//        receiverId : true
-//      },
-//      'lastMessageSent' : newMessageID,
-//      'lastMessageSentTime' : timeStamp,
-//    });
-//  }
 
   ///a simple unique ID generator
   String determineChatUID(String senderPublicId, String receiverPublicId) {
@@ -146,19 +110,16 @@ class ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildChatMessages() {
-//    return widget.chatStream == null ? Center(child: Text('Start chatting no!'),) :
-    String chatId =
-        determineChatUID(widget.userPublicId, widget.contactModel.publicId);
+
+    String chatId = determineChatUID(widget.userPublicId, widget.contactModel.publicId);
     Query query = AppData.of(context).getChatMessageStream(chatId);
     if(query == null) print('query is nul');
     return FirebaseAnimatedList(
       reverse: false,
-      sort: (a, b) =>
-          (a.value['messageTime'] as int).compareTo(b.value['messageTime']),
+      sort: (a, b) => (a.value['messageTime'] as int).compareTo(b.value['messageTime']),
       query: query,
-      itemBuilder:
-          (_, DataSnapshot snapshot, Animation<double> animation, int index) {
-        print('indeOf :$index');
+      itemBuilder: (_, DataSnapshot snapshot, Animation<double> animation, int index) {
+
         return MessageBubble(
           message: snapshot.value['message'],
           sender: snapshot.value['sentBy'] == widget.userPublicId

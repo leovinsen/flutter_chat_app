@@ -1,4 +1,3 @@
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/model/chat_room_data.dart';
@@ -53,25 +52,30 @@ class ChatTab extends StatelessWidget {
             onTap: () => handleClick(context, contactId, chatRoom.chatUID),
             child: ListTile(
               dense: false,
-              leading: FutureBuilder(
-                initialData: "",
-                future: getContactThumbUrl(contactId),
-                ///TODO: REMOVE FUTUREBUILDER AND MIMIC CONTACTS_TAB's IMPLEMENTATION
-                builder: (_, snapshot) {
-                  if (snapshot.hasData) {
-                    String url = snapshot.data;
-                    return CircularNetworkProfileImage(
-                      size: dimen.listViewCircleImageSize,
-                      url: url,
-                      publicId: getContactPublicId(chatRoom, model.publicId),);
-                  } else {
-                    return Container(
-                      height: dimen.listViewCircleImageSize,
-                      width: dimen.listViewCircleImageSize,
-                    );
-                  }
-                },
+              leading: CircularNetworkProfileImage(
+                size: dimen.listViewCircleImageSize,
+                url: getContactThumbUrl(contactId, context),
+                publicId: contactId,
               ),
+//              FutureBuilder(
+//                initialData: "",
+//                future: getContactThumbUrl(contactId),
+//                ///TODO: REMOVE FUTUREBUILDER AND MIMIC CONTACTS_TAB's IMPLEMENTATION
+//                builder: (_, snapshot) {
+//                  if (snapshot.hasData) {
+//                    String url = snapshot.data;
+//                    return CircularNetworkProfileImage(
+//                      size: dimen.listViewCircleImageSize,
+//                      url: url,
+//                      publicId: getContactPublicId(chatRoom, model.publicId),);
+//                  } else {
+//                    return Container(
+//                      height: dimen.listViewCircleImageSize,
+//                      width: dimen.listViewCircleImageSize,
+//                    );
+//                  }
+//                },
+//              ),
 
 
               title: contactName(userDisplayName, chatRoom),
@@ -110,11 +114,20 @@ class ChatTab extends StatelessWidget {
   }
 
   ///TODO: USE FROM CACHE, AND DELEGATE LOADING TO APPDATA
- Future<String> getContactThumbUrl(String publicId) async {
-    FirebaseDatabase db = FirebaseDatabase.instance;
-    DataSnapshot snapshot = await db.reference().child('usersInfo/$publicId/thumbUrl').once();
-    print(snapshot.value);
-    return snapshot.value;
+ String getContactThumbUrl(String publicId, BuildContext context) {
+    AppData appData = AppData.of(context);
+    UserData contact = appData.contactsData.singleWhere((contactData) {
+      return contactData.publicId == publicId;
+    },orElse: ()=> null);
+
+    return contact?.thumbUrl;
+
+
+
+//    FirebaseDatabase db = FirebaseDatabase.instance;
+//    DataSnapshot snapshot = await db.reference().child('usersInfo/$publicId/thumbUrl').once();
+//    print(snapshot.value);
+//    return snapshot.value;
   }
 
   void handleClick(BuildContext context, String contactPublicId, String chatUID) async {
@@ -123,8 +136,8 @@ class ChatTab extends StatelessWidget {
       return contactModel.publicId == contactPublicId;
     });
 
-
     print('CHAT_TAB: Opening ChatScreen for $chatUID');
+    appData.refreshUserData(contactPublicId);
     Navigator.push(context, MaterialPageRoute(
         builder: (context) => ChatScreen(userPublicId: appData.publicId, contactModel: contactModel,))
     );
