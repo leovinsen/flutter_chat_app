@@ -176,18 +176,6 @@ class AppData extends Model {
     notifyListeners();
   }
 
-
-
-  ///Function that is called when a new chat room is found in user's chat rooms branch
-  void getChatRoomData(Event event) async {
-    String chatRoomId = event.snapshot.key;
-    print('AppData: chatRoomid is $chatRoomId');
-    _chatRoomsData.add(await repo.getChatRoom(chatRoomId));
-    _chatRoomSubs.add( repo.newMessagesListener(chatRoomId, updateLastMessageOnChatRoom));
-    notifyListeners();
-
-  }
-
   ///TODO: Add enum for "ContactAddedAlready" and "ContactExists"
   Future<AddContact> addContact(String contactId) async {
     ///First check if user is already in contact list
@@ -201,17 +189,6 @@ class AppData extends Model {
     } else {
       return AddContact.duplicateContact;
     }
-//    if(user ==null) {
-//      ///Check online or from database
-////      user = await repo.getUserDataFor(publicId);
-//      ///If null, then not found
-//      if (user ==null){
-//        return false;
-//      }
-//      return true;
-//    }
-//    print('Contact is in your contacts list');
-//    return false;
   }
 
 //  Future addContact(String contactId) async{
@@ -219,6 +196,16 @@ class AppData extends Model {
 //
 //      print('Successfully added contact $contactId to firebase & db');
 //  }
+
+  ///Function that is called when a new chat room is found in user's chat rooms branch
+  void getChatRoomData(Event event) async {
+    String chatRoomId = event.snapshot.key;
+    print('AppData: chatRoomid is $chatRoomId');
+    _chatRoomsData.add(await repo.getChatRoom(chatRoomId));
+    _chatRoomSubs.add( repo.newMessagesListener(chatRoomId, updateLastMessageOnChatRoom));
+    notifyListeners();
+
+  }
 
   ///TODO: FIX THIS
   void updateLastMessageOnChatRoom(Event event) async {

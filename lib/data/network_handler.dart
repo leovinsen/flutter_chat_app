@@ -31,10 +31,10 @@ class NetworkHandler {
   Future<void> insertChatMessage(String chatId, String senderId, String receiverId, String message) async {
 
     ///insert chat room into both parties' branch at /userChats/
-    _db.reference().child('userChats/$senderId').update({
+    _db.reference().child('$_branchUserChats/$senderId').update({
       chatId : true
     });
-    _db.reference().child('userChats/$receiverId').update({
+    _db.reference().child('$_branchUserChats/$receiverId').update({
       chatId : true
     });
 

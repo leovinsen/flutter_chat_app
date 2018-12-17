@@ -56,6 +56,7 @@ class ChatTab extends StatelessWidget {
               leading: FutureBuilder(
                 initialData: "",
                 future: getContactThumbUrl(contactId),
+                ///TODO: REMOVE FUTUREBUILDER AND MIMIC CONTACTS_TAB's IMPLEMENTATION
                 builder: (_, snapshot) {
                   if (snapshot.hasData) {
                     String url = snapshot.data;
@@ -91,7 +92,7 @@ class ChatTab extends StatelessWidget {
 
   Widget contactName(String userDisplayName, ChatRoomData chatRoom) {
     List s = List.from(chatRoom.allMembers)..remove(userDisplayName);
-    String contactName = s.first();
+    String contactName = s.length > 0 ? s.first() : userDisplayName;
     return Text(contactName);
 
   }
@@ -104,6 +105,7 @@ class ChatTab extends StatelessWidget {
 
   String getContactPublicId(ChatRoomData chatRoom, String userId){
     List s = List.from(chatRoom.allMembersPublicId)..remove(userId);
+    if(s.length == 0) return userId;
     return s.first;
   }
 
