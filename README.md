@@ -12,6 +12,3 @@ Screenshots of the application can be seen below:
 ![Profile Tab](https://i.imgur.com/gGSFLApm.jpg)
 ![Chat Tab](https://i.imgur.com/Z1glKKkm.jpg)
 
-
-## Author's Note
-The project is developed with the intention of deepening my understanding of Flutter and to design a market-ready mobile app. The challenges are mainly in designing the database and learning how to operate Firebase as this is my first time using it.
