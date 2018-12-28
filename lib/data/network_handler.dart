@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
 
 class NetworkHandler {
@@ -77,6 +79,18 @@ class NetworkHandler {
   Future<bool> usernameExist(String publicId) async {
     var snapshot = await _db.reference().child('$_branchUsersInfo/$publicId').once();
     return snapshot != null;
+  }
+
+  Future<String> uploadImageTask(String publicId, File imageFile) async {
+    StorageReference ref =
+    FirebaseStorage.instance.ref().child(publicId).child("profile_picture.jpg");
+    StorageUploadTask uploadTask = ref.putFile(imageFile);
+
+    String thumbUrl = await (await uploadTask.onComplete).ref.getDownloadURL();
+    await _db.reference().child('$_branchUsersInfo/$publicId').update({'thumbUrl' : thumbUrl });
+    return thumbUrl;
+//    if (mounted) Scaffold.of(context).showSnackBar(SnackBar(content: Text('Upload successful'), duration: Duration(seconds: 2),));
+//    debugPrint('Upload successful: $thumbUrl');
   }
 
 

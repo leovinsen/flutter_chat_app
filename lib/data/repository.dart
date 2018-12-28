@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_chat_app/data/cache_database.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_chat_app/data/network_handler.dart';
 import 'package:flutter_chat_app/model/auth.dart';
 import 'package:flutter_chat_app/model/chat_room_data.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
+import 'package:image_picker/image_picker.dart';
 
 class Repository  {
   static final String tag = "REPO";
@@ -160,6 +162,11 @@ class Repository  {
     return users;
   }
 
+  Future<void> uploadImage(String publicId, ImageSource imgSource) async {
+    File imageFile = await ImagePicker.pickImage(source: imgSource, maxWidth: 400, maxHeight: 400);
+    String newThumbUrl = await network.uploadImageTask(publicId, imageFile);
+    sharedPrefs.updateUserThumbUrl(newThumbUrl);
+  }
 
 
   Future<List> loadSharedPrefs() async {

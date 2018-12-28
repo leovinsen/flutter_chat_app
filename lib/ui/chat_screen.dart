@@ -27,6 +27,7 @@ class ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+
   }
 
   void _submitMsg(String txt) {

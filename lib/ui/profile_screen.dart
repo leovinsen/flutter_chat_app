@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/ui/chat_editor.dart';
@@ -27,19 +24,8 @@ class ProfileScreenState extends State<ProfileScreen> {
   Future _pickImage(ImageSource imgSource) async {
     AppData data = AppData.of(context);
     if(imgSource == null) return;
-
-    //createDialog(context);
-    String publicId = data.publicId;
-    File imageFile = await ImagePicker.pickImage(source: imgSource, maxWidth: 400, maxHeight: 400);
-    StorageReference ref =
-    FirebaseStorage.instance.ref().child(publicId).child("profile_picture.jpg");
-    StorageUploadTask uploadTask = ref.putFile(imageFile);
-
-    FirebaseDatabase db = FirebaseDatabase.instance;
-    String s = await (await uploadTask.onComplete).ref.getDownloadURL();
-    db.reference().child('usersInfo/$publicId').update({'thumbUrl' : s });
+    await data.uploadImage(imgSource);
     if (mounted) Scaffold.of(context).showSnackBar(SnackBar(content: Text('Upload successful'), duration: Duration(seconds: 2),));
-    debugPrint('Upload successful: $s');
   }
 
   Future<ImageSource> chooseImageSource() async {
@@ -152,15 +138,19 @@ class ProfileScreenState extends State<ProfileScreen> {
   void _openNameEditor(AppData data) async {
     String originalName = data.displayName;
 
-    final String results = await
+    String results = await
     Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => ChatEditor(originalName))
-    )..trim();
+    );
 
-    if(results != null && results.isNotEmpty && results != originalName){
-      FirebaseDatabase db = FirebaseDatabase.instance;
-      db.reference().child('usersInfo/${data.publicId}').update({'displayName' : results });
+    if (results != null){
+      results = results.trim();
+      if(results.isNotEmpty && results != originalName){
+        FirebaseDatabase db = FirebaseDatabase.instance;
+        db.reference().child('usersInfo/${data.publicId}').update({'displayName' : results });
+      }
     }
+    
   }
 
 }

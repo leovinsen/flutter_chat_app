@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/data/repository.dart';
 import 'package:flutter_chat_app/model/chat_room_data.dart';
 import 'package:flutter_chat_app/model/user_data.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 enum AuthStatus {
@@ -280,6 +281,10 @@ class AppData extends Model {
         break;
     }
     notifyListeners();
+  }
+
+  Future<void> uploadImage(ImageSource imgSource) async {
+    await repo.uploadImage(_publicId, imgSource);
   }
 
   void retrieveContactInfo(Event event) async {
