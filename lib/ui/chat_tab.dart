@@ -96,7 +96,7 @@ class ChatTab extends StatelessWidget {
 
   Widget contactName(String userDisplayName, ChatRoomData chatRoom) {
     List s = List.from(chatRoom.allMembers)..remove(userDisplayName);
-    String contactName = s.length > 0 ? s.first() : userDisplayName;
+    String contactName = s.length > 0 ? s.first : userDisplayName;
     return Text(contactName);
 
   }
@@ -137,7 +137,7 @@ class ChatTab extends StatelessWidget {
     });
 
     print('CHAT_TAB: Opening ChatScreen for $chatUID');
-    appData.refreshUserData(contactPublicId);
+    appData.refreshUserDataFor(contactPublicId);
     Navigator.push(context, MaterialPageRoute(
         builder: (context) => ChatScreen(userPublicId: appData.publicId, contactModel: contactModel,))
     );

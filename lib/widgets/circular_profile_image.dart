@@ -43,7 +43,7 @@ class CircularNetworkProfileImage extends StatelessWidget {
           height: size,
           decoration: new BoxDecoration(
             shape: BoxShape.circle,
-            image: DecorationImage(fit: BoxFit.fill, image: smallImage),
+            image: DecorationImage(fit: BoxFit.cover, image: smallImage),
           ),
           //child: CachedNetworkImage(imageUrl: url,),
         ),

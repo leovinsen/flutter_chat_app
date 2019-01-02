@@ -120,12 +120,14 @@ class AppData extends Model {
         _publicId = publicId;
         _displayName = await repo.loadCacheDisplayName();
         _thumbUrl = await repo.loadCacheThumbUrl();
+        _refreshUserData();
         _status = AuthStatus.signedIn;
+
       }
     }
     ready = true;
     notifyListeners();
-    _refreshUserData();
+
   }
 
   void _refreshUserData(){
@@ -204,7 +206,7 @@ class AppData extends Model {
     notifyListeners();
   }
 
-  Future<void> refreshUserData(String publicId) async {
+  Future<void> refreshUserDataFor(String publicId) async {
     UserData user = _contactsData.singleWhere((user){
       return user.publicId == publicId;
     });
@@ -232,6 +234,7 @@ class AppData extends Model {
 
     ///If null, then user has not been added, now check if there exists such user
     if (user == null) {
+      print('Adding contact');
       bool b = await repo.addContact(_publicId, contactId);
       return b ? AddContact.success : AddContact.contactDoesNotExist;
     } else {
@@ -270,7 +273,7 @@ class AppData extends Model {
   }
 
   void updateUserProfile(Event event) async {
-
+    print('updating user profile');
     var val = event.snapshot.value;
     switch(event.snapshot.key){
       case "thumbUrl":

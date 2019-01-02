@@ -27,7 +27,10 @@ class ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    AppData appData = AppData.of(context);
+    appData.refreshUserDataFor(widget.contactModel.publicId);
 
+    ///Refresh contact Model
   }
 
   void _submitMsg(String txt) {

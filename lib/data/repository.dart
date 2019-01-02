@@ -54,7 +54,7 @@ class Repository  {
       //Update the user's info on firebase
       await network.setUserInfo(
           publicId,
-          {UserData.kPublicId: publicId, UserData.kDisplayName: displayName}
+          {UserData.kPublicId: publicId, UserData.kDisplayName: displayName, UserData.kThumbUrl: ""}
           );
 
       //Update cache
@@ -118,6 +118,7 @@ class Repository  {
 //    String url = await sharedPrefs.getUserThumbUrl();
 //    if(url == null){
       String url = await network.getUserThumbUrl(publicId);
+      if(url.isEmpty) url = null;
       sharedPrefs.updateUserThumbUrl(url);
 //    }
     return url;
@@ -171,8 +172,6 @@ class Repository  {
 
   Future<List> loadSharedPrefs() async {
     var token = await sharedPrefs.getUserAuthToken();
-
-
   }
 
   Future<List<ChatRoomData>> loadChatRooms() async {

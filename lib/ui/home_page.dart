@@ -1,9 +1,11 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/ui/add_contact_screen.dart';
 import 'package:flutter_chat_app/ui/chat_tab.dart';
 import 'package:flutter_chat_app/ui/contacts_tab.dart';
 import 'package:flutter_chat_app/ui/profile_screen.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 class HomePage extends StatefulWidget {
@@ -14,13 +16,52 @@ class HomePage extends StatefulWidget {
 class _HomePageNewState extends State<HomePage> {
 
   AppData appData;
+  FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+
+    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+    var initializationSettingsAndroid =
+    new AndroidInitializationSettings('app_icon');
+    var initializationSettingsIOS = new IOSInitializationSettings();
+    var initializationSettings = new InitializationSettings(
+        initializationSettingsAndroid, initializationSettingsIOS);
+    flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+    flutterLocalNotificationsPlugin.initialize(initializationSettings,);
+
+    var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
+        'your channel id', 'your channel name', 'your channel description',
+        importance: Importance.Max, priority: Priority.High);
+    var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
+    var platformChannelSpecifics = new NotificationDetails(
+        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+
+
     appData = AppData.of(context);
     appData.initSubscriptions();
+    _firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        print('onMessage notif');
+        print(message);
+        await flutterLocalNotificationsPlugin.show(
+            0, message['notification']['title'], message['notification']['body'], platformChannelSpecifics,
+            payload: 'item id 2');
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        print("onLaunch: $message");
+      },
+      onResume: (Map<String, dynamic> message) async {
+        print("onResume: $message");
+      },
+    );
+
+    _firebaseMessaging.getToken().then((String token) {
+      assert(token != null);
+      print("TOKEN: $token");
+    });
   }
 
   @override

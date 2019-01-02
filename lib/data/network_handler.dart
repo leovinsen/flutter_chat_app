@@ -77,8 +77,9 @@ class NetworkHandler {
   }
 
   Future<bool> usernameExist(String publicId) async {
+    print('Checking if $publicId exists');
     var snapshot = await _db.reference().child('$_branchUsersInfo/$publicId').once();
-    return snapshot != null;
+    return snapshot.value != null;
   }
 
   Future<String> uploadImageTask(String publicId, File imageFile) async {

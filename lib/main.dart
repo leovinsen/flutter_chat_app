@@ -3,7 +3,10 @@ import 'package:flutter_chat_app/model/app_data.dart';
 import 'package:flutter_chat_app/ui/root_page.dart';
 import 'package:scoped_model/scoped_model.dart';
 
-void main() => runApp(MyApp());
+void main() {
+
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
 
