@@ -28,7 +28,8 @@ class ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     AppData appData = AppData.of(context);
-    appData.refreshUserDataFor(widget.contactModel.publicId);
+    print("CONTACTMODEL PID: ${widget.contactModel.publicId}");
+    appData.refreshContactDataFor(widget.contactModel.publicId);
 
     ///Refresh contact Model
   }

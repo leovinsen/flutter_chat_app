@@ -134,7 +134,7 @@ class Repository  {
     //Fetch from network
     UserData user = await network.getUserData(publicId);
     //Save into cache
-    int result = await database.update(user, isContact);
+    int result = await database.updateUser(user, isContact);
     print('DATABASE_UPDATE RESULT: $result');
     if (result == 0) await database.insertUser(user, isContact);
 
@@ -151,15 +151,10 @@ class Repository  {
     ///Save into database
   }
 
-  Future<List<UserData>> loadContacts() async {
-    List rawMaps = await database.getAllContactsData();
+  Future<List<UserData>> loadContactsFromCache() async {
+    List rawMaps = await database.getContactsData();
     List<UserData> users = [];
     rawMaps.forEach((map) => users.add(UserData.fromMap(map)));
-
-//    List<UserData> users = [];
-//    for (String id in list){
-//      users.add(await database.getUserData(id));
-//    }
     return users;
   }
 
@@ -221,7 +216,7 @@ class Repository  {
         chatRoomId, lastMessageSentID);
     int lastMessageSentTime = snapshot.value['lastMessageSentTime'];
 
-    return ChatRoomData(
+    ChatRoomData chatRoom = ChatRoomData(
       chatUID: chatRoomId,
       allMembersPublicId: allMembersPublicId,
       allMembers: allMembersDisplayName,
@@ -229,5 +224,8 @@ class Repository  {
       lastMessageSent: lastMessageSent,
       lastMessageSentTime: lastMessageSentTime,
     );
+
+    await database.insertChatRoom(chatRoom);
+    return chatRoom;
   }
   }

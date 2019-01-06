@@ -21,7 +21,14 @@ class ChatRoomData {
     this.lastMessageSentUID,
     this.lastMessageSentTime});
 
-  toJson() {
-    return {'members': allMembersPublicId, 'lastMessageSent': lastMessageSent};
+  Map<String, dynamic> toJson() {
+    return {
+      kChatId : chatUID,
+      kAllMembersPublicId: allMembersPublicId.toString(),
+      kAllMembersDisplayName : allMembers.toString(),
+      kLastMessageSentId : lastMessageSentUID,
+      kLastMessageSent: lastMessageSent,
+      kLastMessageTime : lastMessageSentTime,
+    };
   }
 }

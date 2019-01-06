@@ -39,8 +39,6 @@ class AppData extends Model {
   StreamSubscription<Event> _onNewChatSub;
   StreamSubscription<Event> _onProfileUpdate;
 
-
-
   String _publicId;
   String _token;
   String _thumbUrl;
@@ -60,6 +58,19 @@ class AppData extends Model {
 
   List<ChatRoomData> get chatRoomData => _chatRoomsData;
 
+  Query getChatMessageStream(String chatId) => repo.getChatMessageStream(chatId);
+
+  Future<UserData> getUserDataFor(String publicId) async => await repo.getUserDataFor(publicId, false);
+
+//  Future<UserData> getUserDataFor(String publicId) async {
+//    UserData user = await repo.getUserDataFor(publicId, false);
+//    return user;
+//  }
+
+  Future<void> uploadImage(ImageSource imgSource) async {
+    await repo.uploadImage(_publicId, imgSource);
+  }
+
   AppData(){
     initialize();
   }
@@ -68,66 +79,54 @@ class AppData extends Model {
     repo = Repository();
     ///Initialize Repository
     await repo.init();
-
     await _loadSharedPrefs();
-
-    ///Authenticate user
-//    _token = await repo.getUserAuthToken();
-//
-//    ///User authenticated
-//    if(_token != null) {
-//      ///Check if he/she has registered a public Id (which is compulsory)
-//      _publicId = await repo.getUserPublicId(_token);
-//      ///If not null, then he/she has registered one
-//      if(_publicId != null){
-//        ///Now get the display name
-//        _displayName = await repo.getUserDisplayName(_publicId);
-//        print('displayName from repo: $_displayName');
-//        _thumbUrl = await repo.getUserThumbUrl(_publicId);
-//
-//        _status = AuthStatus.signedIn;
-//
-//
-//        //Now load cached data:
-//        //User chats, user contacts, user profile
-//        await _loadCache();
-//      } else {
-//        ///publicId is not found, therefore he/she has to register one
-//        _status = AuthStatus.incompleteRegistration;
-//      }
-//
-//    } else {
-//      ///Token for user is not found. Therefore not signed in
-//      print('$tag: No auth token is found. User is not signed in');
-//      _status = AuthStatus.notSignedIn;
-//    }
-//
-//    ready = true;
-//    notifyListeners();
+    await _loadCache();
+    ready = true;
+    notifyListeners();
   }
 
   Future<void> _loadSharedPrefs() async{
-    String token = await repo.loadCacheToken();
-    if(token == null){
-      print('$tag: No auth token is found. User is not signed in');
-      _status = AuthStatus.notSignedIn;
-    } else {
-      _token = token;
-      String publicId = await repo.loadCachePublicId();
-      if(publicId == null) {
-        _status = AuthStatus.incompleteRegistration;
+    try {
+      String token = await repo.loadCacheToken();
+      if (token == null) {
+        print('$tag: No auth token is found. User is not signed in');
+        _status = AuthStatus.notSignedIn;
       } else {
-        _publicId = publicId;
-        _displayName = await repo.loadCacheDisplayName();
-        _thumbUrl = await repo.loadCacheThumbUrl();
-        _refreshUserData();
-        _status = AuthStatus.signedIn;
-
+        _token = token;
+        String publicId = await repo.loadCachePublicId();
+        if (publicId == null) {
+          _status = AuthStatus.incompleteRegistration;
+        } else {
+          _publicId = publicId;
+          _displayName = await repo.loadCacheDisplayName();
+          _thumbUrl = await repo.loadCacheThumbUrl();
+          _refreshUserData();
+          _status = AuthStatus.signedIn;
+        }
       }
+    } catch (e) {
+      print(e.toString());
     }
-    ready = true;
-    notifyListeners();
+  }
 
+  Future<void> _loadCache() async {
+    try {
+      //Load Chat Rooms
+
+
+      //Load Contacts
+      _contactsData = await repo.loadContactsFromCache();
+      print('${_contactsData.length} contacts Loaded.');
+      for (UserData contact in _contactsData){
+        print(contact.toString());
+      }
+      _chatRoomsData = await repo.loadChatRooms() ?? [];
+
+
+
+    } catch (e){
+      print('$tag: ' + e.toString());
+    }
   }
 
   void _refreshUserData(){
@@ -138,18 +137,31 @@ class AppData extends Model {
     });
   }
 
-  Future _loadCache() async {
-    try {
-      _contactsData = await repo.loadContacts();
-      print('${_contactsData.length} contacts Loaded.');
-      for (UserData contact in _contactsData){
-        print(contact.toString());
-      }
-      _chatRoomsData = await repo.loadChatRooms() ?? [];
-    } catch (e){
-      print('$tag: ' + e.toString());
-    }
+  Future<void> refreshContactDataFor(String publicId) async {
+
+    UserData newUser = await repo.getUserDataFor(publicId, true);
+    UserData oldUser = singleContact(publicId);
+
+//    UserData oldUser = _contactsData.singleWhere((user){
+//      return user.publicId == publicId;
+//    });
+    _contactsData[_contactsData.indexOf(oldUser)] = newUser;
+    print('Successfuly update user $publicId');
+    notifyListeners();
   }
+
+  UserData singleContact(String publicId){
+    UserData oldUser = _contactsData.singleWhere((user){
+      return user.publicId == publicId;
+    }, orElse: ()=> null);
+
+    return oldUser;
+//    if(oldUser == null) return false;
+//
+//    _contactsData[_contactsData.indexOf(oldUser)] = newContact;
+//    return true;
+  }
+
 
   Future<void> registerNew(String email, String password) async {
     ///Auth Status etc
@@ -206,25 +218,13 @@ class AppData extends Model {
     notifyListeners();
   }
 
-  Future<void> refreshUserDataFor(String publicId) async {
-    UserData user = _contactsData.singleWhere((user){
-      return user.publicId == publicId;
-    });
 
-    UserData newUser = await repo.getUserDataFor(publicId, true);
-
-    _contactsData[_contactsData.indexOf(user)] = newUser;
-    print('Successfuly update user $publicId');
-    notifyListeners();
-  }
 
   Future<void> sendMessage(String chatId, String senderId, String receiverId, String message) async {
     await repo.sendMessage(chatId, senderId, receiverId, message);
   }
 
-  Query getChatMessageStream(String chatId) {
-    return repo.getChatMessageStream(chatId);
-  }
+
 
   ///TODO: Add enum for "ContactAddedAlready" and "ContactExists"
   Future<AddContact> addContact(String contactId) async {
@@ -249,7 +249,6 @@ class AppData extends Model {
     _chatRoomsData.add(await repo.getChatRoom(chatRoomId));
     _chatRoomSubs.add( repo.newMessagesListener(chatRoomId, updateLastMessageOnChatRoom));
     notifyListeners();
-
   }
 
   ///TODO: FIX THIS
@@ -286,14 +285,16 @@ class AppData extends Model {
     notifyListeners();
   }
 
-  Future<void> uploadImage(ImageSource imgSource) async {
-    await repo.uploadImage(_publicId, imgSource);
-  }
-
   void retrieveContactInfo(Event event) async {
     String contactId = event.snapshot.key;
     print('Adding contact named $contactId');
-    _contactsData.add(await repo.getUserDataFor(contactId, true));
+    UserData newUser = await repo.getUserDataFor(contactId, true);
+    UserData oldUser = singleContact(contactId);
+    if(oldUser == null){
+      _contactsData.add(newUser);
+    } else {
+      _contactsData[_contactsData.indexOf(oldUser)] = newUser;
+    }
     notifyListeners();
   }
 

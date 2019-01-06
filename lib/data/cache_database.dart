@@ -40,14 +40,22 @@ class CacheDatabase{
     sqlDb = await openDatabase(path, version: 1,
         onCreate: (Database db, int version) async {
           // When creating the db, create the table
-          await db.execute('''
+            _createTable(db);
+        },
+        );
+    didInit = true;
+    print('SQLite database init done');
+  }
+
+  _createTable(Database db) async {
+    await db.execute('''
               CREATE TABLE $tableUsersInfo (
                   ${UserData.kPublicId} TEXT PRIMARY KEY NOT NULL,
                   ${UserData.kDisplayName} TEXT NOT NULL,
                   ${UserData.kThumbUrl} TEXT,
                   isContact INTEGER DEFAULT 0)
                   ''');
-          await db.execute('''
+    await db.execute('''
             CREATE TABLE $tableUserChats (
               ${ChatRoomData.kChatId} TEXT PRIMARY KEY NOT NULL,
               ${ChatRoomData.kAllMembersPublicId} TEXT NOT NULL,
@@ -56,13 +64,6 @@ class CacheDatabase{
               ${ChatRoomData.kLastMessageSent} TEXT NOT NULL,
               ${ChatRoomData.kLastMessageTime} INTEGER NOT NULL)
           ''');
-//          await db.execute('''
-//            CREATE TABLE $tableUserContacts (
-//               $colPublicId TEXT PRIMARY KEY NOT NULL)
-//          ''');
-        });
-    didInit = true;
-    print('SQLite database init done');
   }
 
   Future<UserData> getUserData(String publicId) async {
@@ -77,12 +78,12 @@ class CacheDatabase{
     return null;
   }
 
-  Future<List> getAllContactsData() async {
+  Future<List> getContactsData() async {
     var db = await _getDb();
     List result = await db.query(tableUsersInfo,
         columns: [UserData.kPublicId, UserData.kDisplayName, UserData.kThumbUrl],
         where: "isContact = ?",
-        whereArgs: [true]) ..toList();
+        whereArgs: [1]) ..toList();
     return result;
   }
 
@@ -106,16 +107,25 @@ class CacheDatabase{
 //    return await db.insert(tableUserContacts, { colPublicId : publicId} );
 //  }
 
+  Future<int> insertChatRoom(ChatRoomData chatRoom) async{
+    var db = await _getDb();
+    Map<String, dynamic> map = {}..addAll(chatRoom.toJson());
+    map[ChatRoomData.kLastMessageTime] = map[ChatRoomData.kLastMessageTime] as int;
+    int val = await db.insert(tableUserChats, map);
+    print('Insert ChatRoom value: $val');
+    return val;
+  }
+
   Future<int> insertUser(UserData user, bool isContact) async {
 
     var db = await _getDb();
     Map<String,dynamic> map = {}..addAll(user.toJson())..addAll({'isContact' : isContact ? 1 : 0});
     int val = await db.insert(tableUsersInfo,  map);
-    print('DB insert return value: $val');
+    print('DB insert contact return value: $val');
     return val;
   }
 
-  Future<int> update(UserData user, bool isContact) async {
+  Future<int> updateUser(UserData user, bool isContact) async {
     var db = await _getDb();
     Map<String,dynamic> map = {}..addAll(user.toJson())..addAll({'isContact' : isContact ? 1 : 0});
     return await db.update(tableUsersInfo, map,

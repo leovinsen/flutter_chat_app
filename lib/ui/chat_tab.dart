@@ -134,10 +134,11 @@ class ChatTab extends StatelessWidget {
     AppData appData = AppData.of(context);
     UserData contactModel = appData.contactsData.singleWhere((contactModel){
       return contactModel.publicId == contactPublicId;
-    });
+    }, orElse: ()=> null);
+
+    if(contactModel == null) contactModel = await appData.getUserDataFor(contactPublicId);
 
     print('CHAT_TAB: Opening ChatScreen for $chatUID');
-    appData.refreshUserDataFor(contactPublicId);
     Navigator.push(context, MaterialPageRoute(
         builder: (context) => ChatScreen(userPublicId: appData.publicId, contactModel: contactModel,))
     );
